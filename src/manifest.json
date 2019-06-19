@@ -1,0 +1,44 @@
+{
+	"manifest_version": 2
+	, "name": "ftt"
+	, "description": "A tree tab addon"
+	, "version": "0.2.0"
+
+	, "applications": {
+		"gecko": {
+			"id": "{8d808887-ed13-4931-9f5a-4c0bff979a5a}"
+			, "strict_min_version": "59.0a1"
+		}
+	},
+
+	"sidebar_action": {
+		"default_title": "tabs"
+		, "default_panel": "sidebar.html"
+	},
+
+	"background": {
+		"scripts": [
+			"extern/js-syncqueue/src.js"
+			, "extern/we-tabcache/src.js"
+			, "js/tree.js"
+			, "js/debug.js"
+			, "js/menu.js"
+			, "js/background.js"
+		]
+	},
+
+	"options_ui": {
+		"page": "options.html"
+	},
+
+	"permissions": [
+		"bookmarks"
+		, "cookies"
+		, "contextualIdentities"
+		, "menus"
+		, "menus.overrideContext"
+		, "sessions"
+		, "storage"
+		, "tabs"
+	]
+}

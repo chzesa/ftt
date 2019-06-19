@@ -1,0 +1,132 @@
+body {
+	background-color: #323232;
+	color: #f9f9f9;
+	overflow-x: hidden;
+}
+.tab {
+	width: 100%;
+	height: 26px;
+	clear: both;
+}
+
+.tab:hover {
+	background-color: #484848;
+}
+
+.badge {
+	width: 16px;
+	height: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	position: relative;
+	margin: 0 4px;
+	border-radius: 4px;
+	display:inline-block;
+	color: #f9f9f9;
+	font-style: normal;
+}
+
+.badge.fold {
+	width: auto;
+	padding: 0px 4px;
+}
+
+.context {
+	width: 2px;
+	height: 100%;
+	float:left;
+	margin: 0 -2px 0 0;
+}
+
+.fold {
+	float:left;
+	background-color: grey;
+}
+
+.mute {
+	float:right;
+	background-color: red;
+	background-image: url('/icons/volume-x.svg');
+	background-size: contain;
+}
+
+.favicon {
+	width: 16px;
+	height: 16px;
+	float:left;
+	background-size: contain;
+	top: 50%;
+	transform: translateY(-50%);
+	position: relative;
+	margin: 0 4px;
+	display:inline-block;
+}
+
+.discarded {
+	color:grey;
+	font-style: italic;
+}	
+
+.active {
+	background-color: #0a84ff;
+	color:white;
+}
+
+.tabTitle {
+	/*overflow: hidden;*/
+	white-space: nowrap;
+	line-height: 26px;
+	width: 0px;
+	display:inline-block;
+}
+
+.selection {
+	background-color: #304FFE;
+}
+
+.childContainer {
+	padding-left: 15px;
+}
+
+
+.pinned {
+	width: 26px;
+	float: left;
+	clear: none;
+}
+
+.pinned > .badge {
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	position: initial;
+}
+
+.pinned > .tabTitle {
+	display: none;
+}
+
+.pinned > .favicon {
+	margin: 0 6px;
+}
+
+.hidden {
+	display: none;
+}
+
+#selection-box {
+	pointer-events: none;
+	position: absolute;
+	will-change: transform;
+	background-color: #304FFE88;
+	border: 1px solid #3D5AFE;
+}
+
+.dragIndicator {
+	height: 2px;
+	width: 100%;
+	border: white 1px solid;
+	position: absolute;
+	will-change: left, top, transform;
+	pointer-events: none;
+}
