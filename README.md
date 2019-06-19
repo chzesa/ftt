@@ -1,1 +1,5 @@
-A tree tab addon for Mozilla Firefox.
+# ftt
+
+A tab tree addon for Mozilla Firefox.
+
+[Download the extension](https://addons.mozilla.org/firefox/addon/ftt/)
