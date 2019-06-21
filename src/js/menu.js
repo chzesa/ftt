@@ -170,10 +170,23 @@ async function createSidebarContext() {
 
 	browser.menus.create(menuCreateInfo('move', 'Move Tab', null));
 
-	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', (info, tab) => {
-		browser.tabs.move(menuGetSelection(tab), {
-			index: 0,
-			windowId: tab.windowId
+	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', async (info, tab) => {
+		let index = 0;
+		let windowId = tab.windowId;
+
+		if (!tab.pinned) {
+			while(true) {
+				if (cache.getIndexed(windowId, index).pinned == false ) {
+					break;
+				}
+
+				index++;
+			}
+		}
+
+		await browser.tabs.move(menuGetSelection(tab), {
+			index,
+			windowId
 		});
 	}, 'move'));
 
