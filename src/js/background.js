@@ -256,7 +256,7 @@ async function onMoved(tab, info) {
 
 	if (cachedData == null) {
 		let parentOptions = getParentOptions(tab.windowId, tab.index);
-		let parentId = parentOptions[parentOptions.length == 1 ? 0 : 1];
+		let parentId = parentOptions[parentOptions.length -1];
 		tree.changeParent(id, parentId);
 		cache.setValue(id, 'parentPid', toPid(parentId));
 	} else  {
