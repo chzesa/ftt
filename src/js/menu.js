@@ -51,6 +51,9 @@ function menuGetSelection(tab) {
 	if (sb != null) {
 		try {
 			selection = sb.getSelection();
+			selection.sort((idA, idB) => {
+				cache.get(idA).index - cache.get(idB).index;
+			});
 		} catch(e) {
 			console.log(e);
 		}
@@ -79,6 +82,7 @@ function menuCreateInfo(id, title, callback, parentId) {
 
 async function menuActionMoveToWindow(info, tab) {
 	let ids = menuGetSelection(tab);
+
 	let windowId = SUBMENU_TAB_MOVE_MAP[info.menuItemId];
 
 	storeArrayRelationData(tab.windowId, ids);
