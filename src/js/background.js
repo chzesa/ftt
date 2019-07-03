@@ -501,65 +501,104 @@ function getSelectionFromSourceWindow() {
 	return [];
 }
 
-async function sidebarDropMoving(id, tarId, before, windowId) {
+function sortFilterSidebarSelection(ids) {
+	return ids.filter(id => !cache.get(id).hidden)
+	.sort((idA, idB) => cache.get(idA).index - cache.get(idB).index);
+}
+
+async function sidebarDropMoving(ids, tarId, before, windowId) {
 	let tree = TREE[windowId];
 	let tarTab = cache.get(tarId);
 	if (tarTab == null) return;
 	let sameWindow = SELECTION_SOURCE_WINDOW == windowId;
 
-	if (Array.isArray(id)) {
-		return;
+	let index = tarTab.index;
+
+	if (!before) {
+		if (cache.getValue(tarId, 'fold') == true) {
+			index = tree.get(tree.findLastDescendant(tarId)).index;
+		}
+
+		index++;
 	}
-	else {
-		let tab = cache.get(id);
-		if (tab == null) return;
 
-		let index = tarTab.index;
+	if (ids.length > 1) {
+		ids = sortFilterSidebarSelection(ids);
+	} else {
+		ids = TREE[SELECTION_SOURCE_WINDOW].subtreeArray(ids[0])
+			.filter(id => !cache.get(id).hidden);
+	}
 
-		if (!before) {
-			if (cache.getValue(tarId, 'fold') == true) {
-				index = tree.get(tree.findLastDescendant(tarId)).index;
-			}
+	if (ids.length == 0) return;
 
-			index++;
-		}
+	storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 
-		if (sameWindow && tab.index < index) index--;
+	if (sameWindow) {
+		if (cache.get(ids[0]).index < index) index -= 1;
 
-		let ids = TREE[tab.windowId].subtreeArray(id);
-		ids = ids.filter(id => !cache.get(id).hidden);
-		storeArrayRelationData(tab.windowId, ids);
-
-		if (sameWindow) {
-			browser.tabs.move(ids, {
-				index,
-				windowId
-			});
-		} else {
-			bug1394477Workaround(ids, windowId, index);
-		}
+		browser.tabs.move(ids, {
+			index,
+			windowId
+		});
+	} else {
+		bug1394477Workaround(ids, windowId, index);
 	}
 }
 
-async function sidebarDropParenting(tabId, parentId, windowId) {
+async function sidebarDropParenting(ids, parentId, windowId) {
 	let tree = TREE[windowId];
 	if (tree.get(parentId) == null) return;
 	if (cache.get(parentId).pinned) return;
 
 	let sameWindow = SELECTION_SOURCE_WINDOW == windowId;
 
-	if (Array.isArray(tabId)) {
-		return;
+	let index = -1;
+	let tarNode = tree.getIndexed(tree.get(tree.findLastDescendant(parentId)).index + 1);
+	if (tarNode != null) {
+		index = tarNode.index;
+	}
+
+	if (ids.length > 1) {
+		ids = sortFilterSidebarSelection(ids);
+
+		if (sameWindow) {
+			let cmpIndex = index;
+			let i = 0;
+			while (i < ids.length && cache.get(ids[i]).index == index) {
+				index++;
+				i++;
+			}
+
+			ids.splice(0, i).forEach(id => {
+				if (getParentOptions(windowId, cmpIndex++).includes(parentId)) {
+					tree.changeParent(id, parentId);
+					cache.setValue(id, 'parentPid', toPid(parentId));
+					sidebar(windowId, 'updateChildPositions', parentId);
+				}
+			});
+
+			if (ids.length == 0) return;
+
+			storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
+			ids.forEach(id => MOVE_CACHE[id].ancestors.unshift(toPid(parentId)));
+			if (cache.get(ids[0]).index < index) index -= 1;
+
+			browser.tabs.move(ids, {
+				index,
+				windowId
+			});
+		} else {
+			storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
+			ids.forEach(id => MOVE_CACHE[id].ancestors.unshift(toPid(parentId)));
+			bug1394477Workaround(ids, windowId, index);
+		}
 	}
 	else {
+		let tabId = ids[0];
 		let tab = cache.get(tabId);
 		if (tab == null) return;
 
-		let index = -1;
-		let tarNode = tree.getIndexed(tree.get(tree.findLastDescendant(parentId)).index + 1);
-
 		if (tarNode != null) {
-			index = tarNode.index;
 			if (sameWindow && tab.index < index) index--;
 		}
 

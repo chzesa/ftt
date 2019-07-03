@@ -106,7 +106,7 @@ const tabs = (function () {
 				let tabId = obj.id;
 				e.dataTransfer.setData('number', tabId);
 				BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
-				Selected.clear();
+
 				Selected.add(tabId);
 
 				dragIndicator.style.display = 'initial';
@@ -127,24 +127,12 @@ const tabs = (function () {
 				}
 
 				if (parenting) {
-					if (selection.length > 1) {
-						BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-							selection, thisId, WINDOW_ID);
-					}
-					else {
-						BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-							selection[0], thisId, WINDOW_ID);
-					}
+					BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
+						selection, thisId, WINDOW_ID);
 				}
 				else {
-					if (selection.length > 1) {
-						BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-							selection, thisId, dropBefore, WINDOW_ID);
-					}
-					else {
-						BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-							selection[0], thisId, dropBefore, WINDOW_ID);
-					}
+					BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
+						selection, thisId, dropBefore, WINDOW_ID);
 				}
 
 				BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast,
