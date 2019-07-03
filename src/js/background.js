@@ -591,6 +591,15 @@ async function sidebarDropParenting(tabId, parentId, windowId) {
 
 // https://bugzilla.mozilla.org/show_bug.cgi?id=1394477
 function bug1394477Workaround(ids, windowId, index) {
+	if (index == -1) {
+		browser.tabs.move(ids, {
+			index,
+			windowId
+		});
+
+		return;
+	}
+
 	ids.forEach(id => {
 		let tab = cache.get(id);
 
