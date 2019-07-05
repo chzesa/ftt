@@ -15,6 +15,34 @@ async function wait(dur) {
 	});
 }
 
+function setScrollPosition(focusId) {
+	let height = document.body.scrollHeight;
+	let viewport = document.documentElement.clientHeight;
+
+	if (height <= viewport) return;
+
+	let delta = 0;
+
+	function showRect(rect) {
+		if (rect.top < delta) {
+			delta += rect.top;
+		} else if (rect.bottom > viewport + delta) {
+			delta += rect.bottom - (viewport + delta);
+		}
+	}
+
+	let focusTab = tabs.get(focusId);
+	if (focusTab != null) {
+		showRect(focusTab.node.getBoundingClientRect());
+	}
+
+	showRect(tabs.get(CACHE.getActive(WINDOW_ID).id).node.getBoundingClientRect());
+
+	if (delta != 0) {
+		document.documentElement.scrollTop += delta;
+	}
+}
+
 function updateAttention(tab, tabObj) {
 
 }
@@ -258,6 +286,7 @@ function updateHidden(tab, tabObj) {
 	}
 
 	displaySubtree(tab.id);
+	setScrollPosition(tab.id);
 	Selected.requireUpdate();
 }
 
@@ -272,6 +301,8 @@ function onActivated(tabId) {
 
 	CURRENT_ACTIVE_NODE = newActiveNode;
 	setNodeClass(CURRENT_ACTIVE_NODE, 'active', true);
+
+	setScrollPosition(tabId);
 }
 
 function onMoved(id) {
@@ -304,6 +335,7 @@ function onMoved(id) {
 	}
 
 	displaySubtree(tab.id);
+	setScrollPosition(id);
 }
 
 function onRemoved(tab, info, values) {
@@ -328,6 +360,7 @@ function onCreated(tab) {
 	}
 
 	Selected.requireUpdate();
+	setScrollPosition(tab.id);
 }
 
 // todo move to separate file
