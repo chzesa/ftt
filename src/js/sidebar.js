@@ -433,9 +433,10 @@ async function init() {
 	});
 
 	document.addEventListener('mouseup', async function (event) {
-		if (event.button != 0 || !event.ctrlKey) return;
-		event.stopPropagation();
-		Selected.stop();
+		if (event.button == 0 && Selected.active()) {
+			event.stopPropagation();
+			Selected.stop();
+		}
 	});
 
 	while (BACKGROUND_PAGE == null) {
