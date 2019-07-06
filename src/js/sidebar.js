@@ -25,7 +25,7 @@ function setScrollPosition(focusId) {
 
 	function showRect(rect) {
 		if (rect.top < delta) {
-			delta += rect.top;
+			delta += rect.top - delta;
 		} else if (rect.bottom > viewport + delta) {
 			delta += rect.bottom - (viewport + delta);
 		}
