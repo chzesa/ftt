@@ -227,6 +227,15 @@ async function createSidebarContext() {
 	}));
 
 	browser.menus.create(menuCreateInfo('close', 'Close Tab', (info, tab) => {
-		browser.tabs.remove(menuGetSelection(tab));
+		let selection = menuGetSelection(tab).reverse();
+		let activeId = cache.getActive(tab.windowId).id;
+		let activeTabIndex = selection.indexOf(activeId);
+
+		if (activeTabIndex != -1) {
+			selection.splice(activeTabIndex, 1);
+			selection.push(activeId);
+		}
+
+		browser.tabs.remove(selection);
 	}));
 }
