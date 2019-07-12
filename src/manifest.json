@@ -27,6 +27,15 @@
 		]
 	},
 
+	"commands": {
+		"_execute_sidebar_action": {
+			"suggested_key": {
+				"default": "F1"
+			},
+			"description": "Toggle sidebar"
+		}
+	},
+
 	"options_ui": {
 		"page": "options.html"
 	},
