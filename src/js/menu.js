@@ -174,7 +174,7 @@ async function createSidebarContext() {
 
 	browser.menus.create(menuCreateInfo('move', 'Move Tab', null));
 
-	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', async (info, tab) => {
+	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', (info, tab) => {
 		let index = 0;
 		let windowId = tab.windowId;
 
@@ -191,7 +191,7 @@ async function createSidebarContext() {
 		let ids = menuGetSelection(tab);
 		storeArrayRelationData(windowId, ids);
 
-		await browser.tabs.move(ids, {
+		browser.tabs.move(ids, {
 			index,
 			windowId
 		});
