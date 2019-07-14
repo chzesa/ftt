@@ -210,6 +210,7 @@ async function createSidebarContext() {
 
 	browser.menus.create(menuCreateInfo('moveToNewWindow', 'Move to New Window', (info, tab) => {
 		let ids = menuGetSelection(tab);
+		storeArrayRelationData(tab.windowId, ids);
 		let tabId = ids.shift();
 
 		browser.windows.create({
