@@ -51,9 +51,9 @@ function menuGetSelection(tab) {
 	if (sb != null) {
 		try {
 			selection = sb.getSelection();
-			selection.sort((idA, idB) => {
-				cache.get(idA).index - cache.get(idB).index;
-			});
+			selection.sort((idA, idB) =>
+				cache.get(idA).index - cache.get(idB).index
+			);
 		} catch(e) {
 			console.log(e);
 		}
