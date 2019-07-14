@@ -484,7 +484,6 @@ async function init() {
 	document.addEventListener('mousedown', async function (event) {
 		if (event.button != 0 || !event.ctrlKey) return;
 		event.stopPropagation();
-		console.log(`Document Mousedown`);
 		Selected.start(event);
 	});
 
