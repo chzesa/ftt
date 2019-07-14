@@ -508,11 +508,18 @@ function sortFilterSidebarSelection(ids) {
 
 async function sidebarDropMoving(ids, tarId, before, windowId) {
 	let tree = TREE[windowId];
-	let tarTab = cache.get(tarId);
-	if (tarTab == null) return;
-	let sameWindow = SELECTION_SOURCE_WINDOW == windowId;
+	let index;
 
-	let index = tarTab.index;
+	if (tarId == -1) {
+		index = -1;
+	} else {
+		let tarTab = cache.get(tarId);
+		if (tarTab == null) {
+			return;
+		} else {
+			index = tarTab.index;
+		}
+	}
 
 	if (!before) {
 		if (cache.getValue(tarId, 'fold') == true) {
@@ -533,7 +540,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 
 	storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 
-	if (sameWindow) {
+	if (SELECTION_SOURCE_WINDOW == windowId) {
 		if (cache.get(ids[0]).index < index) index -= 1;
 
 		browser.tabs.move(ids, {

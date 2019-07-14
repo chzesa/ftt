@@ -411,6 +411,7 @@ async function createTree(cache, tree) {
 
 async function init() {
 	let anchor = document.getElementById('anchor');
+	DRAG_INDICATOR = document.getElementById('dragIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
 
@@ -428,6 +429,27 @@ async function init() {
 	rootTab.container.remove();
 	rootTab.childContainer.remove();
 	rootTab.childContainer = anchor;
+
+	document.addEventListener('drop', (event) => {
+		onDrop(event, -1);
+	}, false);
+
+	document.addEventListener('dragenter', (event) => {
+		onDragEnter(event, anchor);
+	}, false);
+
+	document.addEventListener('dragover', (event) => {
+		event.preventDefault();
+		let scroll = document.documentElement.scrollTop;
+		DRAG_INDICATOR.style.display = 'initial';
+		DRAG_INDICATOR.style.left = '0px';
+		DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
+		DRAG_INDICATOR.style.height = `0px`;
+		DROP_PARENTING = false;
+		DROP_BEFORE = true;
+	}, false);
+
+	document.addEventListener('dragend', onDragEnd, false);
 
 	Selected.init(function () {
 		let ret = {};
@@ -462,6 +484,7 @@ async function init() {
 	document.addEventListener('mousedown', async function (event) {
 		if (event.button != 0 || !event.ctrlKey) return;
 		event.stopPropagation();
+		console.log(`Document Mousedown`);
 		Selected.start(event);
 	});
 

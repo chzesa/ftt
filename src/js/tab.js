@@ -7,12 +7,6 @@ const tabs = (function () {
 		return tabs;
 	}
 
-	let parenting = false;
-	let dragIndicator = document.getElementById('dragIndicator');
-	let tarRect;
-	let blacklist;
-	let dropBefore;
-
 	self.addElement = function(tab) {
 		let obj = tabs[tab.id];
 		if (obj != null) {
@@ -59,121 +53,32 @@ const tabs = (function () {
 
 			let lastMouseUp = 0;
 
-			node.addEventListener('mousedown', async function (event) {
-				if (event.button == 1) {
-					event.stopPropagation();
-					event.preventDefault();
-					browser.tabs.remove(obj.id);
-					return;
-				}
-				if (event.button != 0 || !event.ctrlKey) return;
-				Selected.start(event);
-			})
-
-			node.addEventListener('mouseup', async function (event) {
-				// if (event.button != 0 || event.ctrlKey) return;
-				if (Selected.active()) {
-					Selected.stop();
-					return;
-				}
-
-				event.stopPropagation();
-
-				let tabId = obj.id;
-				let time = Date.now();
-
-				if (time - lastMouseUp < 300) {
-					lastMouseUp = 0;
-
-					if (CACHE.getValue(tabId, 'fold')) unfold(tabId);
-					else fold(tabId);
-					return;
-				}
-				else {
-					lastMouseUp = time;
-				}
-
-				if (event.button == 0) {
-					browser.tabs.update(tabId, {
-						active: true
-					});
-				}
+			node.addEventListener('mousedown', (event) => {
+				onMouseDown(event, obj.id);
 			}, false);
 
-			node.addEventListener('dragstart', function (e) {
-				if (event.ctrlKey) return;
-				if (dragIndicator == null) dragIndicator = document.getElementById('dragIndicator');
-				let tabId = obj.id;
-				e.dataTransfer.setData('number', tabId);
-				BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
-
-				Selected.add(tabId);
-
-				dragIndicator.style.display = 'initial';
+			node.addEventListener('mouseup', (event) => {
+				lastMouseUp = onMouseUp(event, obj.id, lastMouseUp);
 			}, false);
 
-			node.addEventListener('drop', async function (e) {
-				e.preventDefault();
-				dragIndicator.style.display = 'none';
-				let thisId = obj.id;
-
-				let selection;
-				let sourceWindowId = BACKGROUND_PAGE.getSelectionSourceWindow();
-				if (sourceWindowId == WINDOW_ID) {
-					selection = Selected.get();
-					Selected.clear();
-				} else {
-					selection = BACKGROUND_PAGE.getSelectionFromSourceWindow();
-				}
-
-				if (parenting) {
-					BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-						selection, thisId, WINDOW_ID);
-				}
-				else {
-					BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-						selection, thisId, dropBefore, WINDOW_ID);
-				}
-
-				BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast,
-					{ type: SIGNALS.dragDrop });
+			node.addEventListener('dragstart', (event) => {
+				onDragStart(event, obj.id);
 			}, false);
 
-			node.addEventListener('dragenter', function (e) {
-				e.preventDefault();
-				tarRect = node.getBoundingClientRect();
+			node.addEventListener('drop', (event) => {
+				onDrop(event, obj.id);
 			}, false);
 
-			node.addEventListener('dragover', function (e) {
-				e.preventDefault();
-				if (dragIndicator == null) dragIndicator = document.getElementById('dragIndicator');
-				dragIndicator.style.display = 'initial';
-				dragIndicator.style.left = '0px';
-				let scroll = document.documentElement.scrollTop;
-
-				if (e.y < tarRect.top + 7) {
-					dragIndicator.style.top = `${tarRect.top - 1 + scroll}px`;
-					dragIndicator.style.height = `0px`;
-					parenting = false;
-					dropBefore = true;
-				}
-				else if (e.y > tarRect.bottom - 7) {
-					dragIndicator.style.top = `${tarRect.bottom -1 + scroll}px`;
-					dragIndicator.style.height = `0px`;
-					parenting = false;
-					dropBefore = false;
-				}
-				else {
-					dragIndicator.style.height = `${tarRect.height}px`;
-					dragIndicator.style.top = `${tarRect.top + scroll}px`;
-					parenting = true;
-				}
+			node.addEventListener('dragenter', (event) => {
+				onDragEnter(event, node);
 			}, false);
 
-			node.addEventListener('dragend', function (e) {
-				dragIndicator.style.display = 'none';
-				BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast,
-					{ type: SIGNALS.dragDrop });
+			node.addEventListener('dragover', (event) => {
+				onDragOver(event);
+			}, false);
+
+			node.addEventListener('dragend', (event) => {
+				onDragEnd(event);
 			}, false);
 
 			obj.container = container;
