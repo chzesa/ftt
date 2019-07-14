@@ -188,16 +188,23 @@ async function createSidebarContext() {
 			}
 		}
 
-		await browser.tabs.move(menuGetSelection(tab), {
+		let ids = menuGetSelection(tab);
+		storeArrayRelationData(windowId, ids);
+
+		await browser.tabs.move(ids, {
 			index,
 			windowId
 		});
 	}, 'move'));
 
 	browser.menus.create(menuCreateInfo('moveToEnd', 'Move to End', (info, tab) => {
-		browser.tabs.move(menuGetSelection(tab), {
+		let windowId = tab.windowId;
+		let ids = menuGetSelection(tab);
+		storeArrayRelationData(windowId, ids);
+
+		browser.tabs.move(ids, {
 			index: -1,
-			windowId: tab.windowId
+			windowId,
 		});
 	}, 'move'));
 
