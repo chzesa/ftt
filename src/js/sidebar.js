@@ -275,13 +275,7 @@ function updateHidden(tab, tabObj) {
 		return;
 	}
 
-	if (tab.hidden && tabObj != null) {
-		// todo
-		if (CACHE.getValue(tab.id, 'fold') == true) {
-			unfold(tab.id);
-			CACHE.setValue(tab.id, 'fold', true);
-		}
-
+	if (tab.hidden) {
 		tabs.releaseDirty(tab.id);
 	}
 
