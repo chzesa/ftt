@@ -74,9 +74,11 @@ function updateMute(tab, tabObj) {
 }
 
 function updateFaviconUrl(tab, tabObj) {
-	if (tab.favIconUrl == null || tab.favIconUrl.match(/^chrome:\/\//)) {
-		// todo: add chrome url icons
-		tabObj.favicon.style.backgroundImage = '';
+	const chrome = /^chrome:\/\/(.*)/;
+
+	if (chrome.test(tab.favIconUrl)) {
+		tabObj.favicon.style.backgroundImage =
+			`url(../icons/chrome/${chrome.exec(tab.favIconUrl)[1]})`;
 	}
 	else {
 		tabObj.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
