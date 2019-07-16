@@ -115,6 +115,7 @@ body {
 }
 
 #selection-box {
+	display: none;
 	pointer-events: none;
 	position: absolute;
 	will-change: transform;
