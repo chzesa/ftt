@@ -124,7 +124,7 @@ function tree_debug_mixin(tree) {
 	}
 
 	tree.validateLinearity = function() {
-		let tabs = cache.debug().windows[tree.windowId];
+		let tabs = CACHE.debug().windows[tree.windowId];
 		let n = tabs.length;
 
 		for (let i = 0; i < n; i++) {
@@ -159,7 +159,7 @@ function tree_debug_mixin(tree) {
 		for (let i = 0; i < linear.length; i++) {
 			let node = linear[i];
 			let id = linear[i].id;
-			let parentId = toId(cache.getValue(id, 'parentPid'));
+			let parentId = toId(CACHE.getValue(id, 'parentPid'));
 			assert(parentId === node.parentId, `Node ${node.id} had parent ${node.parentId}, but cache had parent ${parentId}`);
 		}
 
@@ -189,7 +189,7 @@ function printTree(src) {
 			for (let k = 0; k < depth; k++) {
 				str += '    ';
 			}
-			let tab = cache.get(child.id);
+			let tab = CACHE.get(child.id);
 
 			str += `pid: ${child.id}, id: ${tab.id} ${tab.title} (${tab.url})\n`;
 
@@ -204,7 +204,7 @@ function printTree(src) {
 	let lin = src.debug().array;
 
 	for (let i = 0; i < lin.length; i++) {
-		let tab = cache.get(lin[i].id);
+		let tab = CACHE.get(lin[i].id);
 		str += `[${i}] pid: ${lin[i].id}, id: ${tab.id} ${tab.title} (${tab.url})\n`;
 	}
 
@@ -212,9 +212,9 @@ function printTree(src) {
 }
 
 async function RESET_TAB_DATA() {
-	await cache.forEach((tab) => {
-		cache.removeValue(tab.id, 'parentPid');
-		cache.removeValue(tab.id, 'pid');
+	await CACHE.forEach((tab) => {
+		CACHE.removeValue(tab.id, 'parentPid');
+		CACHE.removeValue(tab.id, 'pid');
 	});
 }
 
@@ -229,14 +229,14 @@ async function VALIDATE_ALL() {
 }
 
 async function VALIDATE_STORED_DATA() {
-	await cache.forEach(async tab => {
+	await CACHE.forEach(async tab => {
 		let sessionpid = await browser.sessions.getTabValue(tab.id, 'pid');
-		let cachepid = cache.getValue(tab.id, 'pid');
+		let cachepid = CACHE.getValue(tab.id, 'pid');
 		assert(sessionpid == cachepid,
 			`Browser had ${sessionpid} stored as pid of ${tab.id} instead of ${cachepid}`);
 
 		let sessionParent = await browser.sessions.getTabValue(tab.id, 'parentPid');
-		let cacheParent = cache.getValue(tab.id, 'parentPid');
+		let cacheParent = CACHE.getValue(tab.id, 'parentPid');
 		assert(sessionParent == cacheParent,
 			`Browser had ${sessionParent} stored as parent of ${tab.id} instead of ${cacheParent}`);
 	});

@@ -4,7 +4,7 @@ const SUBMENU_TAB_MOVE_MAP = {};
 const SUBMENU_REOPEN_CONTAINER = [];
 
 async function menuUpdate(tabId) {
-	let tab = cache.get(tabId);
+	let tab = CACHE.get(tabId);
 
 	return updateMoveToWindowSubmenu(tab.windowId);
 }
@@ -12,13 +12,13 @@ async function menuUpdate(tabId) {
 async function updateMoveToWindowSubmenu(excludeWindowId) {
 	let count = 0;
 
-	await cache.forEachWindow(async windowId => {
+	await CACHE.forEachWindow(async windowId => {
 		if (windowId == excludeWindowId) return;
 		let menuIndex = count++
 		let info = SUBMENU_TAB_MOVE[menuIndex];
 
-		let numTabs = cache.debug().windows[windowId].length;
-		let activeInWindow = cache.getActive(windowId);
+		let numTabs = CACHE.debug().windows[windowId].length;
+		let activeInWindow = CACHE.getActive(windowId);
 		let title = `Window ${windowId} (${numTabs} tabs, active: ${activeInWindow.title})`;
 
 		if (info == null) {
@@ -52,7 +52,7 @@ function menuGetSelection(tab) {
 		try {
 			selection = sb.getSelection();
 			selection.sort((idA, idB) =>
-				cache.get(idA).index - cache.get(idB).index
+				CACHE.get(idA).index - CACHE.get(idB).index
 			);
 		} catch(e) {
 			console.log(e);
@@ -121,7 +121,7 @@ async function createSidebarContext() {
 		let ids = menuGetSelection(tab);
 
 		QUEUE.do(async () => {
-			let pinned = !cache.get(ids[0]).pinned;
+			let pinned = !CACHE.get(ids[0]).pinned;
 			let tree = TREE[tab.windowId];
 
 			ids.forEach(id => {
@@ -130,7 +130,7 @@ async function createSidebarContext() {
 					let children = node.childNodes.slice(0);
 					tree.promoteFirstChild(id);
 					children.forEach(child =>
-						cache.setValue(child.id, 'parentPid', toPid(child.parentId)));
+						CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 				}
 
 				browser.tabs.update(id, {
@@ -180,7 +180,7 @@ async function createSidebarContext() {
 
 		if (!tab.pinned) {
 			while(true) {
-				if (cache.getIndexed(windowId, index).pinned == false ) {
+				if (CACHE.getIndexed(windowId, index).pinned == false ) {
 					break;
 				}
 
@@ -236,7 +236,7 @@ async function createSidebarContext() {
 
 	browser.menus.create(menuCreateInfo('close', 'Close Tab', (info, tab) => {
 		let selection = menuGetSelection(tab).reverse();
-		let activeId = cache.getActive(tab.windowId).id;
+		let activeId = CACHE.getActive(tab.windowId).id;
 		let activeTabIndex = selection.indexOf(activeId);
 
 		if (activeTabIndex != -1) {

@@ -2,7 +2,7 @@ const SIDEBARS = {};
 const TREE = {};
 
 const ID_TO_PID = {};
-const pid_to_id = {};
+const PID_TO_ID = {};
 
 const MOVE_CACHE = {};
 const RESTORE_CACHE = {};
@@ -10,7 +10,7 @@ const RESTORE_CACHE = {};
 let DEBUG_MODE;
 let STARTING = true;
 
-let cache;
+let CACHE;
 let QUEUE;
 
 let HIJACK_ON_ACTIVATED = null;
@@ -22,7 +22,7 @@ function toPid(id) {
 }
 
 function toId(pid) {
-	return pid_to_id[pid];
+	return PID_TO_ID[pid];
 }
 
 async function wait(dur) {
@@ -34,7 +34,7 @@ async function wait(dur) {
 function assignParent(tab) {
 	if (tab.pinned) return -1;
 
-	let parentId = toId(cache.getValue(tab.id, 'parentPid'));
+	let parentId = toId(CACHE.getValue(tab.id, 'parentPid'));
 	let tree = TREE[tab.windowId];
 
 	if (parentId == null) {
@@ -45,7 +45,7 @@ function assignParent(tab) {
 		parentId = -1;
 	}
 
-	if (parentId != -1 && cache.get(parentId).pinned) {
+	if (parentId != -1 && CACHE.get(parentId).pinned) {
 		return -1;
 	}
 
@@ -58,7 +58,7 @@ function assignPid(id) {
 	// window is created by detaching a tab from another window
 	if (pid != null) return pid;
 
-	pid = cache.getValue(id, 'pid');
+	pid = CACHE.getValue(id, 'pid');
 
 	// This comparison is for detecting duplicated tabs: duplication
 	// appears to copy sessionstore items for the given tab, so after
@@ -75,9 +75,9 @@ function assignPid(id) {
 		});
 	}
 
-	pid_to_id[pid] = id;
+	PID_TO_ID[pid] = id;
 	ID_TO_PID[id] = pid;
-	cache.setValue(id, 'pid', pid);
+	CACHE.setValue(id, 'pid', pid);
 
 	return pid;
 }
@@ -132,7 +132,7 @@ function restoreAncestor(windowId, id, ancestorPids) {
 	}
 
 	if (ancestorId != null) tree.changeParent(id, ancestorId);
-	cache.setValue(id, 'parentPid', toPid(node.parentId));
+	CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 }
 
 function restoreDescendants(windowId, parentId, childPids) {
@@ -152,7 +152,7 @@ function restoreDescendants(windowId, parentId, childPids) {
 			if (child.parentId != parentId
 				&& getParentOptions(windowId, child.index).includes(parentId)) {
 				tree.changeParent(child.id, parentId);
-				cache.setValue(child.id, `parentPid`, pid);
+				CACHE.setValue(child.id, `parentPid`, pid);
 				change = true;
 			}
 		});
@@ -172,16 +172,16 @@ async function newWindow(windowId) {
 		return ancestors;
 	}
 
-	let first = cache.getIndexed(windowId, 0);
-	cache.setValue(first.id, 'parentPid', -1);
+	let first = CACHE.getIndexed(windowId, 0);
+	CACHE.setValue(first.id, 'parentPid', -1);
 
-	await cache.forEach(tab => assignPid(tab.id), windowId);
+	await CACHE.forEach(tab => assignPid(tab.id), windowId);
 
 	let count = 0;
 
-	await cache.forEach(function (tab) {
+	await CACHE.forEach(function (tab) {
 		let id = tab.id;
-		let parentId = tab.pinned ? -1 : toId(cache.getValue(id, 'parentPid'));
+		let parentId = tab.pinned ? -1 : toId(CACHE.getValue(id, 'parentPid'));
 		if (parentId == null && tab.openerTabId != null) {
 			parentId = tab.openerTabId;
 		}
@@ -193,18 +193,18 @@ async function newWindow(windowId) {
 
 		let node = tree.new(id);
 		tree.changeParent(id, parentId);
-		cache.setValue(id, 'parentPid', toPid(node.parentId));
+		CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 		count++;
 	}, windowId);
 
-	await cache.forEach(function (tab) {
+	await CACHE.forEach(function (tab) {
 		let id = tab.id;
 		if (tree.get(id) != null) return;
 
 		let node = tree.new(id);
 		tree.move(id, tab.index);
 
-		let parentId = toId(cache.getValue(tab.id, 'parentPid'));
+		let parentId = toId(CACHE.getValue(tab.id, 'parentPid'));
 		let parentOptions = getParentOptions(windowId, tab.index);
 
 		if (parentOptions.includes(parentId))  {
@@ -213,7 +213,7 @@ async function newWindow(windowId) {
 			tree.changeParent(id, tab.openerTabId);
 		}
 
-		cache.setValue(tab.id, 'parentPid', toPid(node.parentId));
+		CACHE.setValue(tab.id, 'parentPid', toPid(node.parentId));
 	}, windowId);
 
 	if (DEBUG_MODE) {
@@ -230,9 +230,9 @@ async function onUpdated(tab, info) {
 		let node = tree.get(tab.id);
 		let children = node.childNodes.slice(0);
 		tree.promoteFirstChild(tab.id);
-		children.forEach(child => cache.setValue(child.id, 'parentPid', toPid(child.parentId)));
+		children.forEach(child => CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 		tree.changeParent(tab.id, -1);
-		cache.setValue(tab.id, 'parentPid', -1);
+		CACHE.setValue(tab.id, 'parentPid', -1);
 	}
 
 	sidebar(tab.windowId, 'onUpdated', tab, info);
@@ -249,7 +249,7 @@ async function onMoved(tab, info) {
 		let children = node.childNodes.slice(0);
 		if (cachedData == null) storeArrayRelationData(windowId, tree.subtreeArray(id));
 		tree.promoteFirstChild(id);
-		children.forEach(child => cache.setValue(child.id, 'parentPid', toPid(child.parentId)));
+		children.forEach(child => CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 	}
 
 	tree.move(id, tab.index);
@@ -258,7 +258,7 @@ async function onMoved(tab, info) {
 		let parentOptions = getParentOptions(tab.windowId, tab.index);
 		let parentId = parentOptions[parentOptions.length -1];
 		tree.changeParent(id, parentId);
-		cache.setValue(id, 'parentPid', toPid(parentId));
+		CACHE.setValue(id, 'parentPid', toPid(parentId));
 	} else  {
 		restoreAncestor(windowId, id, cachedData.ancestors);
 		restoreDescendants(windowId, id, cachedData.childPids);
@@ -279,7 +279,7 @@ async function onActivated(tab, info) {
 
 		while (i > -1) {
 			let node = lin[i--];
-			if (node != null && cache.get(node.id).hidden == false) {
+			if (node != null && CACHE.get(node.id).hidden == false) {
 				try {
 					await browser.tabs.update(node.id, {
 						active: true
@@ -310,7 +310,7 @@ async function onRemoved(tab, info, values) {
 	let index = node.index;
 	tree.remove(id);
 
-	children.forEach(child => cache.setValue(child.id, 'parentPid', toPid(child.parentId)));
+	children.forEach(child => CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 
 	RESTORE_CACHE[pid] = children.map(child => toPid(child.id));
 
@@ -330,7 +330,7 @@ async function onRemoved(tab, info, values) {
 	}
 
 	delete ID_TO_PID[id];
-	delete pid_to_id[pid];
+	delete PID_TO_ID[pid];
 
 	if (DEBUG_MODE) tree.validate();
 	sidebar(windowId, 'onRemoved', tab, info, values);
@@ -357,7 +357,7 @@ async function onAttached(tab, info) {
 	}
 
 	delete MOVE_CACHE[id];
-	cache.setValue(id, 'parentPid', toPid(node.parentId));
+	CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 
 	if (DEBUG_MODE) tree.validate();
 	sidebar(windowId, 'onCreated', tab);
@@ -375,10 +375,10 @@ function onDetached(tab, info) {
 
 	tree.remove(id);
 
-	children.forEach(child => cache.setValue(child.id, 'parentPid', toPid(child.parentId)));
+	children.forEach(child => CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 
 	let values = {
-		fold: cache.getValue(tab.id, 'fold')
+		fold: CACHE.getValue(tab.id, 'fold')
 	}
 
 	sidebar(windowId, 'onRemoved', tab, info, values);
@@ -413,7 +413,7 @@ async function onCreated(tab) {
 		tree.changeParent(id, parentId);
 	}
 
-	cache.setValue(tab.id, 'parentPid', toPid(node.parentId));
+	CACHE.setValue(tab.id, 'parentPid', toPid(node.parentId));
 
 	let childPids = RESTORE_CACHE[pid];
 	delete RESTORE_CACHE[pid];
@@ -457,7 +457,7 @@ async function registerSidebar(sidebar, windowId) {
 			}
 			else {
 				SIDEBARS[windowId] = sidebar;
-				await sidebar.createTree(cache, TREE[windowId]);
+				await sidebar.createTree(CACHE, TREE[windowId]);
 			}
 		}
 
@@ -502,8 +502,8 @@ function getSelectionFromSourceWindow() {
 }
 
 function sortFilterSidebarSelection(ids) {
-	return ids.filter(id => !cache.get(id).hidden)
-	.sort((idA, idB) => cache.get(idA).index - cache.get(idB).index);
+	return ids.filter(id => !CACHE.get(id).hidden)
+	.sort((idA, idB) => CACHE.get(idA).index - CACHE.get(idB).index);
 }
 
 async function sidebarDropMoving(ids, tarId, before, windowId) {
@@ -513,7 +513,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 	if (tarId == -1) {
 		index = -1;
 	} else {
-		let tarTab = cache.get(tarId);
+		let tarTab = CACHE.get(tarId);
 		if (tarTab == null) {
 			return;
 		} else {
@@ -522,7 +522,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 	}
 
 	if (!before) {
-		if (cache.getValue(tarId, 'fold') == true) {
+		if (CACHE.getValue(tarId, 'fold') == true) {
 			index = tree.get(tree.findLastDescendant(tarId)).index;
 		}
 
@@ -533,7 +533,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 		ids = sortFilterSidebarSelection(ids);
 	} else {
 		ids = TREE[SELECTION_SOURCE_WINDOW].subtreeArray(ids[0])
-			.filter(id => !cache.get(id).hidden);
+			.filter(id => !CACHE.get(id).hidden);
 	}
 
 	if (ids.length == 0) return;
@@ -541,7 +541,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 	storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 
 	if (SELECTION_SOURCE_WINDOW == windowId) {
-		if (cache.get(ids[0]).index < index) index -= 1;
+		if (CACHE.get(ids[0]).index < index) index -= 1;
 
 		browser.tabs.move(ids, {
 			index,
@@ -555,7 +555,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 async function sidebarDropParenting(ids, parentId, windowId) {
 	let tree = TREE[windowId];
 	if (tree.get(parentId) == null) return;
-	if (cache.get(parentId).pinned) return;
+	if (CACHE.get(parentId).pinned) return;
 
 	let sameWindow = SELECTION_SOURCE_WINDOW == windowId;
 
@@ -571,7 +571,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 		if (sameWindow) {
 			let cmpIndex = index;
 			let i = 0;
-			while (i < ids.length && cache.get(ids[i]).index == index) {
+			while (i < ids.length && CACHE.get(ids[i]).index == index) {
 				index++;
 				i++;
 			}
@@ -579,7 +579,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 			ids.splice(0, i).forEach(id => {
 				if (getParentOptions(windowId, cmpIndex++).includes(parentId)) {
 					tree.changeParent(id, parentId);
-					cache.setValue(id, 'parentPid', toPid(parentId));
+					CACHE.setValue(id, 'parentPid', toPid(parentId));
 					sidebar(windowId, 'updateChildPositions', parentId);
 				}
 			});
@@ -588,7 +588,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 
 			storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 			ids.forEach(id => MOVE_CACHE[id].ancestors.unshift(toPid(parentId)));
-			if (cache.get(ids[0]).index < index) index -= 1;
+			if (CACHE.get(ids[0]).index < index) index -= 1;
 
 			browser.tabs.move(ids, {
 				index,
@@ -602,7 +602,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 	}
 	else {
 		let tabId = ids[0];
-		let tab = cache.get(tabId);
+		let tab = CACHE.get(tabId);
 		if (tab == null) return;
 
 		if (tarNode != null) {
@@ -612,14 +612,14 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 		if (sameWindow && tab.index == index) {
 			if (getParentOptions(windowId, index).includes(parentId)) {
 				tree.changeParent(tabId, parentId);
-				cache.setValue(tabId, 'parentPid', toPid(parentId));
+				CACHE.setValue(tabId, 'parentPid', toPid(parentId));
 
 				if (DEBUG_MODE) tree.validate();
 				sidebar(windowId, 'updateChildPositions', parentId);
 			}
 		} else {
 			let ids = TREE[tab.windowId].subtreeArray(tabId);
-			ids = ids.filter(id => !cache.get(id).hidden);
+			ids = ids.filter(id => !CACHE.get(id).hidden);
 			storeArrayRelationData(tab.windowId, ids);
 			MOVE_CACHE[tabId].ancestors.unshift(toPid(parentId));
 
@@ -647,7 +647,7 @@ function bug1394477Workaround(ids, windowId, index) {
 	}
 
 	ids.forEach(id => {
-		let tab = cache.get(id);
+		let tab = CACHE.get(id);
 
 		browser.tabs.move(id, {
 			index,
@@ -665,15 +665,15 @@ async function init() {
 	DEBUG_MODE = config.debug_mode || false;
 	if (DEBUG_MODE) console.log(`Using ftt with debug mode enabled.`);
 
-	pid_to_id[-1] = -1;
+	PID_TO_ID[-1] = -1;
 	ID_TO_PID[-1] = -1;
 
-	await cache.forEachWindow(newWindow);
+	await CACHE.forEachWindow(newWindow);
 	STARTING = false;
 }
 
 async function start() {
-	cache = newCache({
+	CACHE = newCache({
 		listeners: {
 			onActivated,
 			onAttached,
@@ -686,12 +686,12 @@ async function start() {
 		auto: true
 	});
 
-	QUEUE = cache.debug().queue;
+	QUEUE = CACHE.debug().queue;
 
 	browser.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse) {
 		return new Promise(function (res, rej) {
 			QUEUE.do(async function () {
-				let tab = cache.get(msg.tab);
+				let tab = CACHE.get(msg.tab);
 				if (tab == null) {
 					rej();
 					return;
@@ -708,7 +708,7 @@ async function start() {
 	});
 
 	await createSidebarContext();
-	await cache.init(init);
+	await CACHE.init(init);
 }
 
 start();
