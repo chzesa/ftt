@@ -299,24 +299,16 @@ function onActivated(tabId) {
 	setScrollPosition(tabId);
 }
 
-function onMoved(id) {
+function onMoved(id, info) {
 	let tab = CACHE.get(id);
-	if (tab.hidden) return;
-	let tabObj = tabs.get(id);
+	let nextIndex = info.fromIndex < info.toIndex ? info.fromIndex : info.fromIndex + 1;
+	let nextTab = CACHE.getIndexed(WINDOW_ID, nextIndex)
 
-	if (tabObj != null) {
-		let children = tabObj.childContainer.children;
-
-		let array = [];
-		for (let i = 0; i < children.length; i++) {
-			let child = children[i];
-			let childId = child.getAttribute('tabId');
-			array.push(childId);
-		}
-
-		array.forEach( id => insertChild(id, findVisibleParent(id)) );
+	if (nextTab != null) {
+		displaySubtree(nextTab.id);
 	}
 
+	if (tab.hidden) return;
 	if (CACHE.getActive(WINDOW_ID).id == id && unfoldAncestors(id)) {
 		return;
 	} else {

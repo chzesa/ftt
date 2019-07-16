@@ -266,7 +266,7 @@ async function onMoved(tab, info) {
 	}
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onMoved', id);
+	sidebar(windowId, 'onMoved', id, info);
 }
 
 async function onActivated(tab, info) {
