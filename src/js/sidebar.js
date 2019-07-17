@@ -8,6 +8,7 @@ let CURRENT_ACTIVE_NODE;
 
 let TREE;
 let CACHE;
+let START_TIME;
 
 async function wait(dur) {
 	return new Promise(function (res) {
@@ -74,6 +75,7 @@ function updateMute(tab, tabObj) {
 }
 
 function updateFaviconUrl(tab, tabObj) {
+	if (tab.status == `loading`) return;
 	const chrome = /^chrome:\/\/(.*)/;
 
 	if (chrome.test(tab.favIconUrl)) {
@@ -89,6 +91,20 @@ function updatePinned(tab, tabObj) {
 	setNodeClass(tabObj.node, 'pinned', tab.pinned);
 }
 
+function updateStatus(tab, tabObj) {
+	if (tab.status == `loading`) {
+		if (!tabObj.favicon.classList.contains('throbber')) {
+			setNodeClass(tabObj.favicon, 'throbber', true);
+			let delta = Date.now() - START_TIME;
+			tabObj.favicon.style = `animation-delay: -${delta}ms`;
+		}
+	} else {
+		setNodeClass(tabObj.favicon, 'throbber', false);
+		tabObj.favicon.style = null;
+		updateFaviconUrl(tab, tabObj);
+	}
+}
+
 const update_functions = {
 	attention: updateAttention
 	, discarded: updateDiscarded
@@ -97,6 +113,7 @@ const update_functions = {
 	, favIconUrl: updateFaviconUrl
 	, mutedInfo: updateMute
 	, pinned: updatePinned
+	, status: updateStatus
 }
 
 function onUpdated(tab, info) {
@@ -402,6 +419,8 @@ async function init() {
 	DRAG_INDICATOR = document.getElementById('dragIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
+
+	START_TIME = Date.now();
 
 	let config = await browser.storage.local.get();
 	DEBUG_MODE = config.debug_mode || false;

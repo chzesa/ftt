@@ -62,6 +62,17 @@ body {
 	display:inline-block;
 }
 
+@keyframes throbber {
+	from {background-position-x: 0px;}
+	to {background-position-x: calc(-960px * calc(16/16));}
+}
+
+.throbber {
+	background-size: cover;
+	background-image: url("./throbber.svg");
+	animation: throbber 1s steps(60) infinite;
+}
+
 .discarded {
 	color:grey;
 	font-style: italic;

@@ -107,6 +107,7 @@ const tabs = (function () {
 		updateMute(tab, obj);
 		updateContextualIdentity(tab, obj);
 		updatePinned(tab, obj);
+		updateStatus(tab, obj);
 
 		return obj;
 	}
