@@ -151,6 +151,7 @@ function fold(id) {
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
 	setNodeClass(tabObj.badgeFold, 'hidden', false);
+	Selected.requireUpdate();
 }
 
 function unfold(id) {
@@ -284,6 +285,8 @@ function displaySubtree(id) {
 		let parentId = findVisibleParent(id);
 		insertChild(id, parentId, frag);
 	}
+
+	Selected.requireUpdate();
 }
 
 function updateHidden(tab, tabObj) {
@@ -300,7 +303,6 @@ function updateHidden(tab, tabObj) {
 
 	displaySubtree(tab.id);
 	setScrollPosition(tab.id);
-	Selected.requireUpdate();
 }
 
 function onActivated(tabId) {
@@ -405,7 +407,6 @@ async function refresh() {
 	displaySubtree(-1);
 
 	onActivated(CACHE.getActive(WINDOW_ID).id);
-	Selected.requireUpdate();
 }
 
 async function createTree(cache, tree) {
