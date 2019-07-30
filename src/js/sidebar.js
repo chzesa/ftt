@@ -81,9 +81,10 @@ function updateFaviconUrl(tab, tabObj) {
 	if (chrome.test(tab.favIconUrl)) {
 		tabObj.favicon.setAttribute(`src`,
 			`../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`);
-	}
-	else if (tab.favIconUrl != null) {
+	} else if (tab.favIconUrl != null) {
 		tabObj.favicon.setAttribute(`src`, tab.favIconUrl);
+	} else if (tab.pinned) {
+		tabObj.favicon.setAttribute(`src`, `./globe.svg`);
 	} else {
 		tabObj.favicon.setAttribute(`src`, `./alpha.png`);
 	}
@@ -91,6 +92,9 @@ function updateFaviconUrl(tab, tabObj) {
 
 function updatePinned(tab, tabObj) {
 	setNodeClass(tabObj.node, 'pinned', tab.pinned);
+	if (tab.favIconUrl == null) {
+		updateFaviconUrl(tab, tabObj);
+	}
 }
 
 function updateStatus(tab, tabObj) {
