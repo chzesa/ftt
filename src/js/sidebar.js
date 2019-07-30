@@ -79,11 +79,13 @@ function updateFaviconUrl(tab, tabObj) {
 	const chrome = /^chrome:\/\/(.*)/;
 
 	if (chrome.test(tab.favIconUrl)) {
-		tabObj.favicon.style.backgroundImage =
-			`url(../icons/chrome/${chrome.exec(tab.favIconUrl)[1]})`;
+		tabObj.favicon.setAttribute(`src`,
+			`../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`);
 	}
-	else {
-		tabObj.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
+	else if (tab.favIconUrl != null) {
+		tabObj.favicon.setAttribute(`src`, tab.favIconUrl);
+	} else {
+		tabObj.favicon.setAttribute(`src`, `./alpha.png`);
 	}
 }
 
@@ -95,6 +97,7 @@ function updateStatus(tab, tabObj) {
 	if (tab.status == `loading`) {
 		if (!tabObj.favicon.classList.contains('throbber')) {
 			setNodeClass(tabObj.favicon, 'throbber', true);
+			tabObj.favicon.setAttribute(`src`, `./throbber.svg`);
 			let delta = Date.now() - START_TIME;
 			tabObj.favicon.style = `animation-delay: -${delta}ms`;
 		}

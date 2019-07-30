@@ -51,25 +51,25 @@ body {
 }
 
 .favicon {
+	-moz-context-properties: fill;
+	fill: #f9f9f9;
 	width: 16px;
 	height: 16px;
 	float:left;
-	background-size: contain;
 	top: 50%;
 	transform: translateY(-50%);
 	position: relative;
 	margin: 0 4px;
-	display:inline-block;
+	display: inline-block;
 }
 
 @keyframes throbber {
-	from {background-position-x: 0px;}
-	to {background-position-x: calc(-960px * calc(16/16));}
+	from {object-position: 0px 0px;}
+	to {object-position: calc(-960px * calc(16/16)) 0px;}
 }
 
 .throbber {
-	background-size: cover;
-	background-image: url("./throbber.svg");
+	object-fit: none;
 	animation: throbber 1s steps(60) infinite;
 }
 

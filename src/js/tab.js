@@ -22,7 +22,7 @@ const tabs = (function () {
 				class: 'tabTitle'
 			});
 
-			let favicon = new_element('div', {
+			let favicon = new_element('img', {
 				class: 'favicon'
 			});
 
