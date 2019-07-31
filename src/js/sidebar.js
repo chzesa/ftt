@@ -77,17 +77,20 @@ function updateMute(tab, tabObj) {
 function updateFaviconUrl(tab, tabObj) {
 	if (tab.status == `loading`) return;
 	const chrome = /^chrome:\/\/(.*)/;
-
-	if (chrome.test(tab.favIconUrl)) {
-		tabObj.favicon.setAttribute(`src`,
-			`../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`);
-	} else if (tab.favIconUrl != null) {
-		tabObj.favicon.setAttribute(`src`, tab.favIconUrl);
-	} else if (tab.pinned) {
-		tabObj.favicon.setAttribute(`src`, `./globe.svg`);
+	let src;
+	if (tab.favIconUrl == null) {
+		if (tab.pinned) {
+			src = './globe.svg';
+		} else {
+			src = './alpha.png'
+		}
+	} else if (chrome.test(tab.favIconUrl)) {
+		src = `../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`;
 	} else {
-		tabObj.favicon.setAttribute(`src`, `./alpha.png`);
+		src = tab.favIconUrl;
 	}
+
+	tabObj.favicon.setAttribute(`src`, src);
 }
 
 function updatePinned(tab, tabObj) {
