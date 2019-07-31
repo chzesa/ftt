@@ -102,11 +102,14 @@ const tabs = (function () {
 
 		// refresh
 		updateTitle(tab, obj);
-		updateFaviconUrl(tab, obj);
 		updateDiscarded(tab, obj);
 		updateMute(tab, obj);
 		updateContextualIdentity(tab, obj);
-		updatePinned(tab, obj);
+
+		// favicon handled in updateStatus
+		// updateFaviconUrl(tab, obj);
+		// updatePinned(tab, obj);
+		setNodeClass(obj.node, 'pinned', tab.pinned);
 		updateStatus(tab, obj);
 
 		return obj;
