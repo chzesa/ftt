@@ -419,9 +419,10 @@ async function refresh() {
 	onActivated(CACHE.getActive(WINDOW_ID).id);
 }
 
-async function createTree(cache, tree) {
-	CACHE = cache;
-	TREE = tree;
+async function createTree(data) {
+	CACHE = data.cache;
+	TREE = data.tree;
+	START_TIME = data.startTime;
 	await refresh();
 }
 
@@ -430,8 +431,6 @@ async function init() {
 	DRAG_INDICATOR = document.getElementById('dragIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
-
-	START_TIME = Date.now();
 
 	let config = await browser.storage.local.get();
 	DEBUG_MODE = config.debug_mode || false;

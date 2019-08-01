@@ -17,6 +17,8 @@ let HIJACK_ON_ACTIVATED = null;
 let NEXT_PERSISTENT_ID;
 let SELECTION_SOURCE_WINDOW;
 
+let START_TIME;
+
 function toPid(id) {
 	return ID_TO_PID[id];
 }
@@ -457,7 +459,11 @@ async function registerSidebar(sidebar, windowId) {
 			}
 			else {
 				SIDEBARS[windowId] = sidebar;
-				await sidebar.createTree(CACHE, TREE[windowId]);
+				await sidebar.createTree({
+					cache: CACHE,
+					tree: TREE[windowId],
+					startTime: START_TIME
+				});
 			}
 		}
 
@@ -669,6 +675,8 @@ async function init() {
 	ID_TO_PID[-1] = -1;
 
 	await CACHE.forEachWindow(newWindow);
+
+	START_TIME = Date.now();
 	STARTING = false;
 }
 
