@@ -14,6 +14,8 @@ body {
 }
 
 .badge {
+	-moz-context-properties: fill;
+	fill: #f9f9f9;
 	width: 16px;
 	height: 16px;
 	top: 50%;
@@ -46,8 +48,10 @@ body {
 .mute {
 	float:right;
 	background-color: red;
-	background-image: url('/icons/tab-audio-muted.svg');
-	background-size: contain;
+	width: 14px;
+	height: 14px;
+	border-radius: 7px;
+	border: 1px solid black;
 }
 
 .favicon {
@@ -107,9 +111,9 @@ body {
 }
 
 .pinned > .badge {
-	width: 10px;
-	height: 10px;
-	border-radius: 2px;
+	width: 12px;
+	height: 12px;
+	border-radius: 6px;
 	position: initial;
 }
 

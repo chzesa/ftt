@@ -34,8 +34,9 @@ const tabs = (function () {
 				class: 'badge fold hidden'
 			});
 
-			let badgeMute = new_element('div', {
-				class: 'badge mute hidden'
+			let badgeMute = new_element('img', {
+				class: 'badge mute hidden',
+				src: './icons/tab-audio-muted.svg'
 			});
 
 			let node = new_element('div', {
@@ -97,7 +98,6 @@ const tabs = (function () {
 		tabs[tab.id] = obj;
 
 		setNodeClass(obj.badgeFold, 'hidden', true);
-		setNodeClass(obj.badgeMute, 'hidden', true);
 		setNodeClass(obj.node, 'selection', false); // todo: decouple
 
 		// refresh
