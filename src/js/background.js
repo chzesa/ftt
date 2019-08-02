@@ -446,7 +446,7 @@ function sidebar(windowId, fn, ...param) {
 		sb[fn](...param);
 	} catch(e) {
 		delete SIDEBARS[windowId];
-		console.log(e);
+		if (DEBUG_MODE) console.log(e);
 	}
 }
 
@@ -500,7 +500,7 @@ function getSelectionFromSourceWindow() {
 		try {
 			return sb.getSelection();
 		} catch(e) {
-			console.log(e);
+			if (DEBUG_MODE) console.log(e);
 		}
 	}
 
