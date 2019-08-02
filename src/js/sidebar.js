@@ -511,11 +511,12 @@ async function init() {
 		}
 	});
 
-	while (BACKGROUND_PAGE == null) {
-		BACKGROUND_PAGE = await browser.extension.getViews()[0];
-	}
-
-	while (BACKGROUND_PAGE.registerSidebar == null) {
+	while(true) {
+		let pages = await browser.extension.getViews();
+		pages.forEach(p => {
+			if (p.registerSidebar != null) BACKGROUND_PAGE = p;
+		});
+		if (BACKGROUND_PAGE != null) break;
 		await wait(50);
 	}
 
