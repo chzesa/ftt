@@ -80,7 +80,7 @@ function updateFaviconUrl(tab, tabObj) {
 	let src;
 	if (tab.favIconUrl == null) {
 		if (tab.pinned) {
-			src = './globe.svg';
+			src = './icons/globe.svg';
 		} else {
 			src = './alpha.png'
 		}
@@ -104,7 +104,7 @@ function updateStatus(tab, tabObj) {
 	if (tab.status == `loading`) {
 		if (!tabObj.favicon.classList.contains('throbber')) {
 			setNodeClass(tabObj.favicon, 'throbber', true);
-			tabObj.favicon.setAttribute(`src`, `./throbber.svg`);
+			tabObj.favicon.setAttribute(`src`, `./icons/throbber.svg`);
 			let delta = Date.now() - START_TIME;
 			tabObj.favicon.style = `animation-delay: -${delta}ms`;
 		}

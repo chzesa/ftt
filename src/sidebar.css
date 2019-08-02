@@ -46,7 +46,7 @@ body {
 .mute {
 	float:right;
 	background-color: red;
-	background-image: url('/icons/volume-x.svg');
+	background-image: url('/icons/tab-audio-muted.svg');
 	background-size: contain;
 }
 
