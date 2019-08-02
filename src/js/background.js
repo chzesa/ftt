@@ -451,27 +451,17 @@ function sidebar(windowId, fn, ...param) {
 }
 
 async function registerSidebar(sidebar, windowId) {
-	return new Promise(async function (res, rej) {
-		async function initSideBar() {
-			if (STARTING === true) {
-				await wait(20);
-				QUEUE.do(initSideBar);
-			}
-			else {
-				SIDEBARS[windowId] = sidebar;
-				await sidebar.createTree({
-					cache: CACHE,
-					tree: TREE[windowId],
-					startTime: START_TIME
-				});
-			}
-		}
+	while (STARTING) {
+		await wait(50);
+	}
 
-		while (QUEUE == null) {
-			await wait(50);
-		}
-
-		QUEUE.do(initSideBar);
+	QUEUE.do(async () => {
+		SIDEBARS[windowId] = sidebar;
+		await sidebar.createTree({
+			cache: CACHE,
+			tree: TREE[windowId],
+			startTime: START_TIME
+		});
 	});
 }
 
