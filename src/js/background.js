@@ -162,7 +162,7 @@ function restoreDescendants(windowId, parentId, childPids) {
 }
 
 async function newWindow(windowId) {
-	let tree = newTreeStructure();
+	let tree = new TreeStructure();
 	tree.windowId = windowId;
 	TREE[windowId] = tree;
 

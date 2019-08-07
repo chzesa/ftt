@@ -1,33 +1,29 @@
-function newTreeStructure() {
-	const self = {};
-	const map = {};
-	const array = [];
-
-	map[-1] = {
-		id: -1
-		, parentId: null
-		, parent: null
-		, childNodes: []
-		, index: -1
+class TreeStructure {
+	constructor() {
+		this.map = {};
+		this.array = [];
+		this.map[-1] = {
+			id: -1
+			, parentId: null
+			, parent: null
+			, childNodes: []
+			, index: -1
+		};
 	}
 
-	self.debug = function() {
+	debug() {
 		return {
-			map,
-			array
+			map: this.map,
+			array: this.array
 		}
 	}
 
-	self.get = function (id) {
-		return map[id];
-	}
+	get(id) { return this.map[id]; }
 
-	self.getIndexed = function (i) {
-		return array[i];
-	}
+	getIndexed(i) { return this.array[i]; }
 
-	self.ancestorIds = function(id) {
-		let node = map[id];
+	ancestorIds(id) {
+		let node = this.map[id];
 		let ancestors = [];
 
 		while (node.parentId != null) {
@@ -38,8 +34,8 @@ function newTreeStructure() {
 		return ancestors;
 	}
 
-	self.subtreeArray = function(id) {
-		let root = map[id];
+	subtreeArray(id) {
+		let root = this.map[id];
 		let ids = [];
 
 		function recurse(node) {
@@ -54,8 +50,8 @@ function newTreeStructure() {
 		return ids;
 	}
 
-	self.findLastDescendant = function (id) {
-		let node = map[id];
+	findLastDescendant(id) {
+		let node = this.map[id];
 		while (node.childNodes.length > 0) {
 			node = node.childNodes[node.childNodes.length - 1];
 		}
@@ -63,8 +59,8 @@ function newTreeStructure() {
 		return node.id;
 	}
 
-	self.move = function (id, toIndex) {
-		let node = map[id];
+	move(id, toIndex) {
+		let node = this.map[id];
 		let fromIndex = node.index;
 
 		if (fromIndex == toIndex) return;
@@ -76,11 +72,11 @@ function newTreeStructure() {
 		let parent;
 		let childIndex;
 
-		if (displacedIndex >= array.length) {
-			parent = map[-1];
+		if (displacedIndex >= this.array.length) {
+			parent = this.map[-1];
 			childIndex = parent.childNodes.length;
 		} else {
-			let displaced = array[displacedIndex];
+			let displaced = this.array[displacedIndex];
 			parent = displaced.parent;
 			childIndex = parent.childNodes.indexOf(displaced);
 		}
@@ -89,24 +85,24 @@ function newTreeStructure() {
 			childIndex--;
 		}
 
-		changeParent(node, parent, childIndex);
+		this.__changeParent(node, parent, childIndex);
 
-		array.splice(fromIndex, 1);
-		array.splice(toIndex, 0, node);
+		this.array.splice(fromIndex, 1);
+		this.array.splice(toIndex, 0, node);
 
 		let a = Math.min(fromIndex, toIndex);
 		let b = Math.max(fromIndex, toIndex) + 1;
-		b = Math.min(b, array.length);
+		b = Math.min(b, this.array.length);
 		for (let i = a; i < b; i++) {
-			array[i].index = i;
+			this.array[i].index = i;
 		}
 	}
 
-	self.changeParent = function(id, parentId) {
-		let node = map[id];
+	changeParent(id, parentId) {
+		let node = this.map[id];
 		if (node.parentId == parentId) return;
 		// todo: check if parent is legal
-		let parent = map[parentId];
+		let parent = this.map[parentId];
 
 		// todo: binary search
 		let index = 0;
@@ -115,26 +111,26 @@ function newTreeStructure() {
 			index++;
 		}
 
-		changeParent(node, parent, index);
+		this.__changeParent(node, parent, index);
 	}
 
-	self.new = function (id) {
+	new(id) {
 		if (id == null) throw new Error(`Attempt to create a node with null id.`);
-		if (map[id] != null) throw new Error(`Node ${id} already exists.`);
+		if (this.map[id] != null) throw new Error(`Node ${id} already exists.`);
 
 		let node = {};
 		node.id = id;
 		node.childNodes = [];
-		node.index = array.length;
-		array.push(node);
-		map[id] = node;
+		node.index = this.array.length;
+		this.array.push(node);
+		this.map[id] = node;
 
-		changeParent(node, map[-1], -1);
+		this.__changeParent(node, this.map[-1], -1);
 
 		return node;
 	}
 
-	function changeParent(node, parent, index) {
+	__changeParent(node, parent, index) {
 		let oldParent = node.parent;
 
 		if (oldParent != null) {
@@ -154,8 +150,8 @@ function newTreeStructure() {
 		}
 	}
 
-	self.promoteFirstChild = function (id) {
-		let node = map[id];
+	promoteFirstChild(id) {
+		let node = this.map[id];
 
 		let children = node.childNodes;
 		let n = children.length;
@@ -180,21 +176,19 @@ function newTreeStructure() {
 		parent.childNodes.splice(index + 1, 0, firstChild);
 	}
 
-	self.remove = function (id) {
-		let node = map[id];
+	remove(id) {
+		let node = this.map[id];
 
-		array.splice(node.index, 1);
-		let n = array.length;
+		this.array.splice(node.index, 1);
+		let n = this.array.length;
 		let i = node.index;
-		while (i < n) array[i++].index--;
+		while (i < n) this.array[i++].index--;
 
-		self.promoteFirstChild(node.id);
+		this.promoteFirstChild(node.id);
 		let children = node.parent.childNodes;
 		let indexInParent = children.indexOf(node);
 		children.splice(indexInParent , 1);
 
-		delete map[id]
+		delete this.map[id];
 	}
-
-	return self;
 }
