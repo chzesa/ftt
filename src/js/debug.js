@@ -124,6 +124,7 @@ function tree_debug_mixin(tree) {
 	}
 
 	tree.validateLinearity = function() {
+		if (tree.getIndexed(0) == null && CACHE.debug().windows[tree.windowId] == null) return;
 		let tabs = CACHE.debug().windows[tree.windowId];
 		let n = tabs.length;
 
