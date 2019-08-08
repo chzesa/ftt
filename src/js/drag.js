@@ -47,39 +47,60 @@ function onDragStart(event, id) {
 	event.stopPropagation();
 	let tabId = id;
 	event.dataTransfer.setData('number', tabId);
-	BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
+	if (USE_API)
+		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.SetSelectionSource, windowId: WINDOW_ID});
+	else
+		BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
 
 	Selected.add(tabId);
 
 	DRAG_INDICATOR.style.display = 'initial';
 }
 
-function onDrop(event, id) {
+async function onDrop(event, id) {
 	event.preventDefault();
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'none';
 	let thisId = id;
 
 	let selection;
-	let sourceWindowId = BACKGROUND_PAGE.getSelectionSourceWindow();
+	let sourceWindowId;
+
+	if (USE_API)
+		sourceWindowId = await browser.runtime.sendMessage({
+			recipient: -1, type: MSG_TYPE.GetSelectionSource});
+	else
+		sourceWindowId = BACKGROUND_PAGE.getSelectionSourceWindow();
+
 	if (sourceWindowId == WINDOW_ID) {
 		selection = Selected.get();
 		Selected.clear();
 	} else {
-		selection = BACKGROUND_PAGE.getSelectionFromSourceWindow();
+		if (USE_API)
+			selection = await browser.runtime.sendMessage({
+				recipient: -1, type: MSG_TYPE.GetSelection});
+		else
+			selection = await BACKGROUND_PAGE.getSelectionFromSourceWindow();
 	}
 
 	if (DROP_PARENTING) {
-		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-			selection, thisId, WINDOW_ID);
+		if (USE_API)
+			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropParenting,
+				selection, tabId: thisId, windowId: WINDOW_ID});
+		else
+			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
+				selection, thisId, WINDOW_ID);
 	}
 	else {
-		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-			selection, thisId, DROP_BEFORE, WINDOW_ID);
+		if (USE_API)
+			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropMoving,
+				selection, tabId: thisId, windowId: WINDOW_ID, before: DROP_BEFORE});
+		else
+			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
+				selection, thisId, DROP_BEFORE, WINDOW_ID);
 	}
 
-	BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast,
-		{ type: SIGNALS.dragDrop });
+	broadcast(SIGNALS.dragDrop);
 }
 
 function onDragEnter(event, node) {
@@ -117,6 +138,5 @@ function onDragOver(event) {
 function onDragEnd(event) {
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'none';
-	BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast,
-		{ type: SIGNALS.dragDrop });
+	broadcast(SIGNALS.dragDrop);
 }

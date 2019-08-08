@@ -247,6 +247,8 @@ async function onMoved(tab, info) {
 	let cachedData = MOVE_CACHE[id];
 	let node = tree.get(id);
 
+	record(windowId);
+
 	if (node.childNodes.length > 0) {
 		let children = node.childNodes.slice(0);
 		if (cachedData == null) storeArrayRelationData(windowId, tree.subtreeArray(id));
@@ -307,6 +309,8 @@ async function onRemoved(tab, info, values) {
 
 	if (node == null) return;
 
+	record(windowId);
+
 	let children = node.childNodes.slice(0);
 
 	let index = node.index;
@@ -346,6 +350,8 @@ async function onAttached(tab, info) {
 	let tree = TREE[windowId];
 	let node;
 
+	record(windowId);
+
 	if (tree == null) {
 		tree = await newWindow(windowId);
 		node = tree.get(id);
@@ -370,6 +376,8 @@ function onDetached(tab, info) {
 	let tree = TREE[windowId];
 	let id = tab.id;
 	let node = tree.get(id);
+
+	record(windowId);
 
 	let children = node.childNodes.slice(0);
 
@@ -399,6 +407,7 @@ async function onCreated(tab) {
 		pid = toPid(id);
 	}
 	else {
+		record(windowId);
 		pid = assignPid(tab.id);
 		let parentId = assignParent(tab);
 
@@ -438,16 +447,70 @@ async function onCreated(tab) {
 	sidebar(windowId, 'onCreated', tab);
 }
 
+function composeSidebarUpdateMessage(windowId, fn, param) {
+	let msg = { recipient: Number(windowId) };
+	switch(fn) {
+		case 'onActivated':
+			msg.type = MSG_TYPE.OnActivated;
+			msg.tabId = param[0];
+			break;
+
+		case 'onCreated':
+			msg.type = MSG_TYPE.OnCreated;
+			msg.tab = param[0];
+			msg.deltas = TREE[windowId].endRecord();
+			break;
+
+		case 'onMoved':
+			msg.type = MSG_TYPE.OnMoved;
+			msg.tabId = param[0];
+			msg.info = param[1];
+			msg.deltas = TREE[windowId].endRecord();
+			break;
+
+		case 'onRemoved':
+			msg.type = MSG_TYPE.OnRemoved;
+			msg.tab = param[0];
+			msg.info = param[1];
+			msg.values = param[2];
+			msg.deltas = TREE[windowId].endRecord();
+			break;
+
+		case 'onUpdated':
+			msg.type = MSG_TYPE.OnUpdated;
+			msg.tab = param[0];
+			msg.info = param[1];
+			break;
+
+		case 'signal':
+			msg.type = MSG_TYPE.Signal;
+			msg.signal = param[0];
+			break;
+	}
+
+	return msg;
+}
+
 function sidebar(windowId, fn, ...param) {
 	let sb = SIDEBARS[windowId];
 	if (sb == null) return;
 
 	try {
-		sb[fn](...param);
+		if (sb.useApi) {
+			let msg = composeSidebarUpdateMessage(windowId, fn, param);
+			browser.runtime.sendMessage(msg);
+		} else {
+			sb.sidebar[fn](...param);
+		}
 	} catch(e) {
 		delete SIDEBARS[windowId];
 		if (DEBUG_MODE) console.log(e);
 	}
+}
+
+function record(windowId) {
+	let sb = SIDEBARS[windowId];
+	if (sb != null && sb.useApi) TREE[windowId].beginRecord();
 }
 
 async function registerSidebar(sidebar, windowId) {
@@ -456,7 +519,8 @@ async function registerSidebar(sidebar, windowId) {
 	}
 
 	QUEUE.do(async () => {
-		SIDEBARS[windowId] = sidebar;
+		SIDEBARS[windowId] = { sidebar, useApi: false };
+
 		await sidebar.createTree({
 			cache: CACHE,
 			tree: TREE[windowId],
@@ -483,12 +547,17 @@ function getSelectionSourceWindow() {
 	return SELECTION_SOURCE_WINDOW;
 }
 
-function getSelectionFromSourceWindow() {
-	let sb = SIDEBARS[SELECTION_SOURCE_WINDOW];
-
+async function getSelectionFromSourceWindow(src = SELECTION_SOURCE_WINDOW) {
+	let sb = SIDEBARS[src];
 	if (sb != null) {
 		try {
-			return sb.getSelection();
+			if (sb.useApi)
+				return await browser.runtime.sendMessage({
+					recipient: src,
+					type: MSG_TYPE.GetSelection
+				});
+
+			return sb.sidebar.getSelection();
 		} catch(e) {
 			if (DEBUG_MODE) console.log(e);
 		}
@@ -670,6 +739,55 @@ async function init() {
 	STARTING = false;
 }
 
+async function bgInternalMessageHandler(msg, sender, resolve, reject) {
+	if (msg.recipient != -1) return;
+
+	switch(msg.type) {
+		case MSG_TYPE.Register:
+			let windowId = Number(msg.windowId);
+			SIDEBARS[windowId] = {
+				useApi: true,
+				sidebar: sender
+			};
+
+			let deltas = TREE[windowId].asDeltas();
+			let tabs = [];
+			await CACHE.forEach(tab => tabs.push(tab), windowId);
+			resolve({
+				tabs,
+				deltas,
+				startTime: START_TIME
+			});
+			break;
+
+		case MSG_TYPE.SetSelectionSource:
+			SELECTION_SOURCE_WINDOW = Number(msg.windowId)
+			break;
+
+		case MSG_TYPE.GetSelection:
+			let selection = await getSelectionFromSourceWindow();
+			resolve(selection);
+			break;
+
+		case MSG_TYPE.DropMoving:
+			await sidebarDropMoving(msg.selection, msg.tabId, msg.before, msg.windowId);
+			break;
+
+		case MSG_TYPE.DropParenting:
+			await sidebarDropParenting(msg.selection, msg.tabId, msg.windowId);
+			break;
+
+		case MSG_TYPE.UpdateSidebarContextMenu:
+			await menuUpdate(msg.tabId);
+			resolve();
+			break;
+
+		case MSG_TYPE.GetSelectionSource:
+			resolve(SELECTION_SOURCE_WINDOW);
+			break;
+	}
+}
+
 async function start() {
 	CACHE = newCache({
 		listeners: {
@@ -704,6 +822,9 @@ async function start() {
 			});
 		});
 	});
+
+	browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
+		new Promise((res, rej) => QUEUE.do(bgInternalMessageHandler, msg, sender, res, rej)));
 
 	await createSidebarContext();
 	await CACHE.init(init);

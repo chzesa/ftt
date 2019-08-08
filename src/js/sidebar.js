@@ -1,7 +1,6 @@
 let DEBUG_MODE;
 let BACKGROUND_PAGE;
 let WINDOW_ID;
-
 let HIDDEN_ANCHOR;
 
 let CURRENT_ACTIVE_NODE;
@@ -9,6 +8,9 @@ let CURRENT_ACTIVE_NODE;
 let TREE;
 let CACHE;
 let START_TIME;
+
+let USE_API = false;
+let QUEUE;
 
 async function wait(dur) {
 	return new Promise(function (res) {
@@ -53,7 +55,7 @@ function updateDiscarded(tab, tabObj) {
 }
 
 async function updateContextualIdentity(tab, tabObj) {
-	if (tab.cookieStoreId == null || tab.cookieStoreId == 'firefox-default') {
+	if (tab.cookieStoreId == null || tab.cookieStoreId == 'firefox-default' || tab.cookieStoreId == 'firefox-private') {
 		tabObj.context.style.backgroundColor = '';
 	}
 	else {
@@ -387,6 +389,13 @@ const SIGNALS = {
 	deselectAll: 2
 };
 
+function broadcast(signal) {
+	if (USE_API)
+		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.Signal, signal});
+	else
+		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast, { type: SIGNALS.dragDrop });
+}
+
 function signal(param) {
 	switch(param.type) {
 	case SIGNALS.dragDrop:
@@ -401,6 +410,8 @@ function signal(param) {
 	case SIGNALS.deselectAll:
 		Selected.clear();
 		break;
+	default:
+		console.log(`Unrecognized signal ${param}`);
 	}
 }
 
@@ -426,11 +437,66 @@ async function createTree(data) {
 	await refresh();
 }
 
+function resolveDelta(delta) {
+	if (TREE.get(delta.id) == null) TREE.new(delta.id);
+	TREE.move(delta.id, delta.index);
+	TREE.changeParent(delta.id, delta.parentId);
+}
+
+async function sbInternalMessageHandler(msg, sender, resolve, reject) {
+	if (msg.recipient != WINDOW_ID) return;
+	switch (msg.type) {
+		case MSG_TYPE.GetSelection:
+			let ret = Selected.get();
+			Selected.clear();
+			resolve(ret);
+			break;
+
+		case MSG_TYPE.OnActivated:
+			await CACHE.cacheOnActivated({ tabId: msg.tabId });
+			onActivated(msg.tabId);
+			break;
+
+		case MSG_TYPE.OnCreated:
+			await CACHE.cacheOnCreated(msg.tab);
+			msg.deltas.forEach(resolveDelta);
+			onCreated(msg.tab);
+			break;
+
+		case MSG_TYPE.OnMoved:
+			await CACHE.cacheOnMoved(msg.tabId, msg.info);
+			msg.deltas.forEach(resolveDelta);
+			onMoved(msg.tabId, msg.info);
+			break;
+
+		case MSG_TYPE.OnRemoved:
+			await CACHE.cacheOnRemoved(msg.tab.id, msg.info);
+			TREE.remove(msg.tab.id);
+			msg.deltas.forEach(resolveDelta);
+			onRemoved(msg.tab, msg.info, msg.values);
+			break;
+
+		case MSG_TYPE.OnUpdated:
+			await CACHE.cacheOnUpdated(msg.tab.id, msg.info, msg.tab);
+			onUpdated(msg.tab, msg.info);
+			break;
+
+		case MSG_TYPE.Signal:
+			signal(msg.signal);
+			break;
+
+		default:
+			console.log(`Unrecognized msg ${msg}`);
+			break;
+	}
+}
+
 async function init() {
 	let anchor = document.getElementById('anchor');
 	DRAG_INDICATOR = document.getElementById('dragIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
-	WINDOW_ID = (await browser.windows.getCurrent()).id;
+	let currentWindow = await browser.windows.getCurrent();
+	WINDOW_ID = currentWindow.id;
 
 	let config = await browser.storage.local.get();
 	DEBUG_MODE = config.debug_mode || false;
@@ -490,12 +556,26 @@ async function init() {
 			tabId = Number(container.getAttribute('tabId'));
 		}
 
-		BACKGROUND_PAGE.menuUpdate(tabId).then(_ => {
+		if (USE_API) {
+			// todo this should be awaited on
+			browser.runtime.sendMessage({
+				type: MSG_TYPE.UpdateSidebarContextMenu,
+				recipient: -1,
+				tabId
+			});
+
 			browser.menus.overrideContext({
 				context: 'tab'
 				, tabId
 			});
-		});
+		} else {
+			BACKGROUND_PAGE.menuUpdate(tabId).then(_ => {
+				browser.menus.overrideContext({
+					context: 'tab'
+					, tabId
+				});
+			});
+		}
 	});
 
 	document.addEventListener('mousedown', async function (event) {
@@ -510,6 +590,32 @@ async function init() {
 			Selected.stop();
 		}
 	});
+
+	if (currentWindow.incognito) {
+		USE_API = true;
+		TREE = new TreeStructure();
+		QUEUE = newSyncQueue({enabled: false});
+		CACHE = newCache();
+
+		QUEUE.do(refresh);
+
+		browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
+			new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
+
+		let msg = await browser.runtime.sendMessage({
+			type: MSG_TYPE.Register,
+			recipient: -1,
+			windowId: WINDOW_ID
+		});
+
+		START_TIME = msg.startTime;
+
+		msg.deltas.forEach(resolveDelta);
+		for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
+
+		QUEUE.enable();
+		return;
+	}
 
 	while(true) {
 		let pages = await browser.extension.getViews();

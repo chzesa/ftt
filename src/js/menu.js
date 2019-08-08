@@ -44,13 +44,12 @@ async function updateMoveToWindowSubmenu(excludeWindowId) {
 	}
 }
 
-function menuGetSelection(tab) {
+async function menuGetSelection(tab) {
 	let sb = SIDEBARS[tab.windowId];
 	let selection;
-
 	if (sb != null) {
 		try {
-			selection = sb.getSelection();
+			selection = await getSelectionFromSourceWindow(tab.windowId);
 			selection.sort((idA, idB) =>
 				CACHE.get(idA).index - CACHE.get(idB).index
 			);
@@ -81,7 +80,7 @@ function menuCreateInfo(id, title, callback, parentId) {
 }
 
 async function menuActionMoveToWindow(info, tab) {
-	let ids = menuGetSelection(tab);
+	let ids = await menuGetSelection(tab);
 
 	let windowId = SUBMENU_TAB_MOVE_MAP[info.menuItemId];
 
@@ -103,12 +102,12 @@ async function createSidebarContext() {
 		deselectAll: 2
 	};
 
-	browser.menus.create(menuCreateInfo('reload', 'Reload Tab', (info, tab) => {
-		menuGetSelection(tab).forEach(id => browser.tabs.reload(id));
+	browser.menus.create(menuCreateInfo('reload', 'Reload Tab', async (info, tab) => {
+		(await menuGetSelection(tab)).forEach(id => browser.tabs.reload(id));
 	}));
 
-	browser.menus.create(menuCreateInfo('mute', 'Mute Tab', (info, tab) => {
-		menuGetSelection(tab).forEach(id => {
+	browser.menus.create(menuCreateInfo('mute', 'Mute Tab', async (info, tab) => {
+		(await menuGetSelection(tab)).forEach(id => {
 			browser.tabs.get(id).then(tab => {
 				browser.tabs.update(id, {
 					muted: tab.mutedInfo == null ? true : !tab.mutedInfo.muted
@@ -117,8 +116,8 @@ async function createSidebarContext() {
 		});
 	}));
 
-	browser.menus.create(menuCreateInfo('pin', 'Pin Tab', (info, tab) => {
-		let ids = menuGetSelection(tab);
+	browser.menus.create(menuCreateInfo('pin', 'Pin Tab', async (info, tab) => {
+		let ids = await menuGetSelection(tab);
 
 		QUEUE.do(async () => {
 			let pinned = !CACHE.get(ids[0]).pinned;
@@ -140,8 +139,8 @@ async function createSidebarContext() {
 		});
 	}));
 
-	browser.menus.create(menuCreateInfo('duplicate', 'Duplicate Tab', (info, tab) => {
-		menuGetSelection(tab).forEach(id => browser.tabs.duplicate(id));
+	browser.menus.create(menuCreateInfo('duplicate', 'Duplicate Tab', async (info, tab) => {
+		(await menuGetSelection(tab)).forEach(id => browser.tabs.duplicate(id));
 	}));
 
 	let separator = menuCreateInfo();
@@ -157,8 +156,8 @@ async function createSidebarContext() {
 		sidebar(tab.windowId, 'signal', {type: SIGNALS.deselectAll});
 	}));
 
-	browser.menus.create(menuCreateInfo('bookmark', 'Bookmark Tab', (info, tab) => {
-		menuGetSelection(tab).forEach(id => {
+	browser.menus.create(menuCreateInfo('bookmark', 'Bookmark Tab', async (info, tab) => {
+		(await menuGetSelection(tab)).forEach(id => {
 			browser.tabs.get(id).then(tab => {
 				browser.bookmarks.create({
 					title: tab.title
@@ -174,7 +173,7 @@ async function createSidebarContext() {
 
 	browser.menus.create(menuCreateInfo('move', 'Move Tab', null));
 
-	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', (info, tab) => {
+	browser.menus.create(menuCreateInfo('moveToStart', 'Move to Start', async (info, tab) => {
 		let index = 0;
 		let windowId = tab.windowId;
 
@@ -188,7 +187,7 @@ async function createSidebarContext() {
 			}
 		}
 
-		let ids = menuGetSelection(tab);
+		let ids = await menuGetSelection(tab);
 		storeArrayRelationData(windowId, ids);
 
 		browser.tabs.move(ids, {
@@ -197,9 +196,9 @@ async function createSidebarContext() {
 		});
 	}, 'move'));
 
-	browser.menus.create(menuCreateInfo('moveToEnd', 'Move to End', (info, tab) => {
+	browser.menus.create(menuCreateInfo('moveToEnd', 'Move to End', async (info, tab) => {
 		let windowId = tab.windowId;
-		let ids = menuGetSelection(tab);
+		let ids = await menuGetSelection(tab);
 		storeArrayRelationData(windowId, ids);
 
 		browser.tabs.move(ids, {
@@ -208,8 +207,8 @@ async function createSidebarContext() {
 		});
 	}, 'move'));
 
-	browser.menus.create(menuCreateInfo('moveToNewWindow', 'Move to New Window', (info, tab) => {
-		let ids = menuGetSelection(tab);
+	browser.menus.create(menuCreateInfo('moveToNewWindow', 'Move to New Window', async (info, tab) => {
+		let ids = await menuGetSelection(tab);
 		storeArrayRelationData(tab.windowId, ids);
 		let tabId = ids.shift();
 
@@ -230,12 +229,12 @@ async function createSidebarContext() {
 
 	browser.menus.create(separator);
 
-	browser.menus.create(menuCreateInfo('unload', 'Unload Tab', (info, tab) => {
-		browser.tabs.discard(menuGetSelection(tab));
+	browser.menus.create(menuCreateInfo('unload', 'Unload Tab', async (info, tab) => {
+		browser.tabs.discard(await menuGetSelection(tab));
 	}));
 
-	browser.menus.create(menuCreateInfo('close', 'Close Tab', (info, tab) => {
-		let selection = menuGetSelection(tab).reverse();
+	browser.menus.create(menuCreateInfo('close', 'Close Tab', async (info, tab) => {
+		let selection = (await menuGetSelection(tab)).reverse();
 		let activeId = CACHE.getActive(tab.windowId).id;
 		let activeTabIndex = selection.indexOf(activeId);
 

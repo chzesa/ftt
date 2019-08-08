@@ -23,6 +23,7 @@
 			, "js/tree.js"
 			, "js/debug.js"
 			, "js/menu.js"
+			, "js/api.js"
 			, "js/background.js"
 		]
 	},

@@ -9,6 +9,7 @@ class TreeStructure {
 			, childNodes: []
 			, index: -1
 		};
+		this.recordDeltas = false;
 	}
 
 	debug() {
@@ -16,6 +17,28 @@ class TreeStructure {
 			map: this.map,
 			array: this.array
 		}
+	}
+
+	beginRecord() {
+		this.recordDeltas = true;
+		this.deltas = [];
+	}
+
+	endRecord() {
+		this.recordDeltas = false;
+		return this.deltas;
+	}
+
+	asDeltas() {
+		let ret = [];
+
+		this.array.forEach(node => ret.push({
+			id: node.id,
+			parentId: node.parentId,
+			index: node.index
+		}));
+
+		return ret;
 	}
 
 	get(id) { return this.map[id]; }
@@ -85,8 +108,6 @@ class TreeStructure {
 			childIndex--;
 		}
 
-		this.__changeParent(node, parent, childIndex);
-
 		this.array.splice(fromIndex, 1);
 		this.array.splice(toIndex, 0, node);
 
@@ -96,6 +117,8 @@ class TreeStructure {
 		for (let i = a; i < b; i++) {
 			this.array[i].index = i;
 		}
+
+		this.__changeParent(node, parent, childIndex);
 	}
 
 	changeParent(id, parentId) {
@@ -148,6 +171,12 @@ class TreeStructure {
 		else {
 			children.splice(index, 0, node);
 		}
+
+		if (this.recordDeltas) this.deltas.push({
+			id: node.id,
+			parentId: parent.id,
+			index: node.index
+		});
 	}
 
 	promoteFirstChild(id) {
@@ -162,11 +191,23 @@ class TreeStructure {
 		firstChild.parent = node.parent;
 		let newChildren = firstChild.childNodes;
 
+		if (this.recordDeltas) this.deltas.push({
+			id: firstChild.id,
+			parentId: firstChild.parentId,
+			index: firstChild.index
+		});
+
 		for (let i = 1; i < n; i++) {
 			let child = children[i];
 			child.parentId = firstChild.id;
 			child.parent = firstChild;
 			newChildren.push(child);
+
+			if (this.recordDeltas) this.deltas.push({
+				id: child.id,
+				parentId: firstChild.id,
+				index: child.index
+			});
 		}
 
 		node.childNodes = [];
