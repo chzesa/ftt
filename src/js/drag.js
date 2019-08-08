@@ -29,7 +29,7 @@ function onMouseUp(event, id, lastMouseUp) {
 	let time = Date.now();
 
 	if (time - lastMouseUp < 300) {
-		if (CACHE.getValue(tabId, 'fold')) unfold(tabId);
+		if (getFoldedState(tabId)) unfold(tabId);
 		else fold(tabId);
 		return 0;
 	}

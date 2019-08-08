@@ -752,12 +752,20 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 
 			let deltas = TREE[windowId].asDeltas();
 			let tabs = [];
-			await CACHE.forEach(tab => tabs.push(tab), windowId);
+			let values = {};
+
+			await CACHE.forEach(tab => {
+				tabs.push(tab);
+				values[tab.id] = CACHE.getValue(tab.id, 'fold') || false;
+			}, windowId);
+
 			resolve({
 				tabs,
 				deltas,
+				values,
 				startTime: START_TIME
 			});
+
 			break;
 
 		case MSG_TYPE.SetSelectionSource:
@@ -784,6 +792,10 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 
 		case MSG_TYPE.GetSelectionSource:
 			resolve(SELECTION_SOURCE_WINDOW);
+			break;
+
+		case MSG_TYPE.SessionsValueUpdated:
+			CACHE.setValue(msg.tabId, msg.key, msg.value);
 			break;
 	}
 }

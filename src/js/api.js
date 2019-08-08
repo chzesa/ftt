@@ -11,5 +11,6 @@ const MSG_TYPE = {
 	OnUpdated: 9,
 	UpdateSidebarContextMenu: 10,
 	Signal: 11,
-	GetSelectionSource: 12
+	GetSelectionSource: 12,
+	SessionsValueUpdated: 13
 };

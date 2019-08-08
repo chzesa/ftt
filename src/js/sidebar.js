@@ -12,10 +12,25 @@ let START_TIME;
 let USE_API = false;
 let QUEUE;
 
+let FOLDED_STATE;
+
 async function wait(dur) {
 	return new Promise(function (res) {
 		setTimeout(res, dur);
 	});
+}
+
+getFoldedState = (id) => USE_API ? FOLDED_STATE[id] : CACHE.getValue(id, 'fold');
+
+function setFoldedState(id, value) {
+	if (USE_API) {
+		if (FOLDED_STATE[id] == value) return;
+		browser.runtime.sendMessage({type: MSG_TYPE.SessionsValueUpdated, tabId: id, key: 'fold', value});
+		FOLDED_STATE[id] = value;
+	}
+	else {
+		CACHE.setValue(id, 'fold', value);
+	}
 }
 
 function setScrollPosition(focusId) {
@@ -159,7 +174,7 @@ function fold(id) {
 	recurse(node);
 	tabs.releaseDirty(release);
 
-	CACHE.setValue(id, 'fold', true);
+	setFoldedState(id, true);
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
 	setNodeClass(tabObj.badgeFold, 'hidden', false);
@@ -169,8 +184,7 @@ function fold(id) {
 function unfold(id) {
 	let tabObj = tabs.get(id);
 	if (tabObj == null) return;
-
-	CACHE.setValue(id, 'fold', false);
+	setFoldedState(id, false);
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
 	displaySubtree(id);
 }
@@ -190,8 +204,7 @@ function inFoldedTree(tabId) {
 	while (node.parentId != -1) {
 		node = node.parent;
 
-		if (CACHE.get(node.id).hidden == false
-			&& CACHE.getValue(node.id, 'fold') == true) {
+		if (CACHE.get(node.id).hidden == false && getFoldedState(node.id)) {
 			return {
 				result: true,
 				id: node.id
@@ -210,8 +223,8 @@ function unfoldAncestors(id) {
 
 	while (node.parentId != -1) {
 		node = node.parent;
-		if (CACHE.getValue(node.id, 'fold') == true) {
-			CACHE.setValue(node.id, 'fold', false);
+		if (getFoldedState(node.id)) {
+			setFoldedState(node.id, false);
 			let tab = CACHE.get(node.id);
 			if (!tab.hidden) {
 				tabs.addElement(tab);
@@ -272,7 +285,7 @@ function displaySubtree(id) {
 		if (tab != null && !tab.hidden){
 			frag.appendChild( tabs.addElement(tab).container );
 
-			if (CACHE.getValue(tab.id, 'fold') == true) {
+			if (getFoldedState(tab.id)) {
 				fold(tab.id);
 				return;
 			}
@@ -485,6 +498,13 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			signal(msg.signal);
 			break;
 
+		case MSG_TYPE.SessionsValueUpdated:
+			if (msg.key != 'fold') break;
+			FOLDED_STATE[msg.tabId] = msg.value;
+			if (msg.value) fold(msg.id);
+			else unfold(msg.id);
+			break;
+
 		default:
 			console.log(`Unrecognized msg ${msg}`);
 			break;
@@ -609,7 +629,7 @@ async function init() {
 		});
 
 		START_TIME = msg.startTime;
-
+		FOLDED_STATE = msg.values;
 		msg.deltas.forEach(resolveDelta);
 		for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
 
