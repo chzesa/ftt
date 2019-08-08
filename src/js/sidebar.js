@@ -444,7 +444,7 @@ function resolveDelta(delta) {
 }
 
 async function sbInternalMessageHandler(msg, sender, resolve, reject) {
-	if (msg.recipient != WINDOW_ID) return;
+	if (msg.recipient !== undefined && msg.recipient != WINDOW_ID) return;
 	switch (msg.type) {
 		case MSG_TYPE.GetSelection:
 			let ret = Selected.get();

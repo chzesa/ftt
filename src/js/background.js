@@ -740,7 +740,7 @@ async function init() {
 }
 
 async function bgInternalMessageHandler(msg, sender, resolve, reject) {
-	if (msg.recipient != -1) return;
+	if (msg.recipient !== undefined && msg.recipient != -1) return;
 
 	switch(msg.type) {
 		case MSG_TYPE.Register:
