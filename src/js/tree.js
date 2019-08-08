@@ -191,24 +191,18 @@ class TreeStructure {
 		firstChild.parent = node.parent;
 		let newChildren = firstChild.childNodes;
 
-		if (this.recordDeltas) this.deltas.push({
-			id: firstChild.id,
-			parentId: firstChild.parentId,
-			index: firstChild.index
-		});
-
 		for (let i = 1; i < n; i++) {
 			let child = children[i];
 			child.parentId = firstChild.id;
 			child.parent = firstChild;
 			newChildren.push(child);
-
-			if (this.recordDeltas) this.deltas.push({
-				id: child.id,
-				parentId: firstChild.id,
-				index: child.index
-			});
 		}
+
+		if (this.recordDeltas) children.forEach(child => this.deltas.push({
+			id: child.id,
+			parentId: child.parentId,
+			index: child.index
+		}));
 
 		node.childNodes = [];
 
