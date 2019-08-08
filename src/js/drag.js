@@ -57,11 +57,10 @@ function onDragStart(event, id) {
 	DRAG_INDICATOR.style.display = 'initial';
 }
 
-async function onDrop(event, id) {
+async function onDrop(event, tabId) {
 	event.preventDefault();
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'none';
-	let thisId = id;
 
 	let selection;
 	let sourceWindowId;
@@ -86,18 +85,18 @@ async function onDrop(event, id) {
 	if (DROP_PARENTING) {
 		if (USE_API)
 			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropParenting,
-				selection, tabId: thisId, windowId: WINDOW_ID});
+				selection, tabId, windowId: WINDOW_ID});
 		else
 			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-				selection, thisId, WINDOW_ID);
+				selection, tabId, WINDOW_ID);
 	}
 	else {
 		if (USE_API)
 			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropMoving,
-				selection, tabId: thisId, windowId: WINDOW_ID, before: DROP_BEFORE});
+				selection, tabId, windowId: WINDOW_ID, before: DROP_BEFORE});
 		else
 			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-				selection, thisId, DROP_BEFORE, WINDOW_ID);
+				selection, tabId, DROP_BEFORE, WINDOW_ID);
 	}
 
 	broadcast(SIGNALS.dragDrop);
