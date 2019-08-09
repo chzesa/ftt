@@ -22,7 +22,11 @@ const tabs = (function () {
 				class: 'tabTitle'
 			});
 
-			let favicon = new_element('img', {
+			let favicon = new_element('div', {
+				class: 'favicon'
+			});
+
+			let faviconSvg = new_element('img', {
 				class: 'favicon'
 			});
 
@@ -42,7 +46,7 @@ const tabs = (function () {
 			let node = new_element('div', {
 				class: 'tab'
 				, draggable: 'true'
-			}, [context, favicon, badgeFold, nodeTitle, badgeMute]);
+			}, [context, faviconSvg, favicon, badgeFold, nodeTitle, badgeMute]);
 
 			let children = new_element('div', {
 				class: 'childContainer'
@@ -87,6 +91,7 @@ const tabs = (function () {
 			obj.childContainer = children;
 
 			obj.favicon = favicon;
+			obj.faviconSvg = faviconSvg;
 			obj.title = nodeTitle;
 			obj.badgeFold = badgeFold;
 			obj.badgeMute = badgeMute;

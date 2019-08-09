@@ -66,6 +66,7 @@ body {
 	position: relative;
 	margin: 0 4px;
 	display: inline-block;
+	background-size: contain;
 	pointer-events:none;
 }
 

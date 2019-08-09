@@ -95,19 +95,30 @@ function updateFaviconUrl(tab, tabObj) {
 	if (tab.status == `loading`) return;
 	const chrome = /^chrome:\/\/(.*)/;
 	let src;
+	let svg = false;
 	if (tab.favIconUrl == null) {
 		if (tab.pinned) {
 			src = './icons/globe.svg';
+			svg = true;
 		} else {
-			src = './alpha.png'
+			src = ''
 		}
 	} else if (chrome.test(tab.favIconUrl)) {
 		src = `../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`;
+		svg = true;
 	} else {
 		src = tab.favIconUrl;
 	}
 
-	tabObj.favicon.setAttribute(`src`, src);
+	if (svg) {
+		setNodeClass(tabObj.favicon, `hidden`, true);
+		setNodeClass(tabObj.faviconSvg, `hidden`, false);
+		tabObj.faviconSvg.setAttribute(`src`, src);
+	} else {
+		setNodeClass(tabObj.favicon, `hidden`, false);
+		setNodeClass(tabObj.faviconSvg, `hidden`, true);
+		tabObj.favicon.style.backgroundImage = `url(${src})`;
+	}
 }
 
 function updatePinned(tab, tabObj) {
@@ -120,10 +131,12 @@ function updatePinned(tab, tabObj) {
 function updateStatus(tab, tabObj) {
 	if (tab.status == `loading`) {
 		if (!tabObj.favicon.classList.contains('throbber')) {
-			setNodeClass(tabObj.favicon, 'throbber', true);
-			tabObj.favicon.setAttribute(`src`, `./icons/throbber.svg`);
+			setNodeClass(tabObj.favicon, `hidden`, true);
+			setNodeClass(tabObj.faviconSvg, `hidden`, false);
+			setNodeClass(tabObj.faviconSvg, 'throbber', true);
+			tabObj.faviconSvg.setAttribute(`src`, `./icons/throbber.svg`);
 			let delta = Date.now() - START_TIME;
-			tabObj.favicon.style = `animation-delay: -${delta}ms`;
+			tabObj.faviconSvg.style = `animation-delay: -${delta}ms`;
 		}
 	} else {
 		setNodeClass(tabObj.favicon, 'throbber', false);
