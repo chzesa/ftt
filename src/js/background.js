@@ -756,7 +756,7 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 
 			await CACHE.forEach(tab => {
 				tabs.push(tab);
-				values[tab.id] = CACHE.getValue(tab.id, 'fold') || false;
+				values[tab.id] = { fold: CACHE.getValue(tab.id, 'fold') || false };
 			}, windowId);
 
 			resolve({
@@ -796,6 +796,12 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 
 		case MSG_TYPE.SessionsValueUpdated:
 			CACHE.setValue(msg.tabId, msg.key, msg.value);
+			browser.runtime.sendMessage({
+				type: MSG_TYPE.SessionsValueUpdated,
+				tabId: msg.tabId,
+				key: msg.key,
+				value: msg.value
+			});
 			break;
 	}
 }
