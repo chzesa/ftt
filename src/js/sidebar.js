@@ -147,8 +147,7 @@ function updateStatus(tab, tabObj) {
 			tabObj.faviconSvg.style = `animation-delay: -${delta}ms`;
 		}
 	} else {
-		setNodeClass(tabObj.favicon, 'throbber', false);
-		tabObj.favicon.style = null;
+		setNodeClass(tabObj.faviconSvg, 'throbber', false);
 		updateFaviconUrl(tab, tabObj);
 	}
 }
