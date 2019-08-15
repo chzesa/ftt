@@ -37,7 +37,7 @@ function setValue(tabId, key, value) {
 		});
 	}
 	else {
-		CACHE.setValue(id, key, value);
+		CACHE.setValue(tabId, key, value);
 	}
 }
 
