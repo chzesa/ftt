@@ -430,14 +430,17 @@ async function onCreated(tab) {
 	delete RESTORE_CACHE[pid];
 
 	if (childPids == null) {
-		let lastChildId = tree.findLastDescendant(node.parentId);
-		if (node.id != lastChildId) {
-			storeArrayRelationData(windowId, [id]);
+		let parent = CACHE.get(node.parentId);
+		if (parent != null && !parent.pinned) {
+			let lastChildId = tree.findLastDescendant(node.parentId);
+			if (node.id != lastChildId) {
+				storeArrayRelationData(windowId, [id]);
 
-			browser.tabs.move(id, {
-				index: tree.get(lastChildId).index,
-				windowId
-			});
+				browser.tabs.move(id, {
+					index: tree.get(lastChildId).index,
+					windowId
+				});
+			}
 		}
 	} else {
 		restoreDescendants(windowId, id, childPids);
