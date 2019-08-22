@@ -27,7 +27,7 @@ function toId(pid) {
 	return PID_TO_ID[pid];
 }
 
-async function wait(dur) {
+function wait(dur) {
 	return new Promise(function (res) {
 		setTimeout(res, dur);
 	});

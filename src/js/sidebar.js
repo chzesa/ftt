@@ -14,7 +14,7 @@ let QUEUE;
 
 let SESSIONS_VALUES;
 
-async function wait(dur) {
+function wait(dur) {
 	return new Promise(function (res) {
 		setTimeout(res, dur);
 	});
