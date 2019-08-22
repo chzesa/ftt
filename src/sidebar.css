@@ -64,7 +64,7 @@ body {
 	top: 50%;
 	transform: translateY(-50%);
 	position: relative;
-	margin: 0 4px;
+	margin: 0 5px;
 	display: inline-block;
 	background-size: contain;
 	pointer-events:none;
