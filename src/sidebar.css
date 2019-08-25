@@ -21,7 +21,7 @@ body {
 	top: 50%;
 	transform: translateY(-50%);
 	position: relative;
-	margin: 0 4px;
+	margin: 0 5px;
 	border-radius: 4px;
 	display:inline-block;
 	color: #f9f9f9;
@@ -38,10 +38,11 @@ body {
 	width: 2px;
 	height: 100%;
 	float:left;
-	margin: 0 -2px 0 0;
+	margin-right:-2px;
 }
 
 .fold {
+	margin: 0 0 0 5px;
 	float:left;
 	background-color: grey;
 }
@@ -64,7 +65,7 @@ body {
 	top: 50%;
 	transform: translateY(-50%);
 	position: relative;
-	margin: 0 5px;
+	margin-left: 5px;
 	display: inline-block;
 	background-size: contain;
 	pointer-events:none;
@@ -91,7 +92,7 @@ body {
 }
 
 .tabTitle {
-	/*overflow: hidden;*/
+	margin-left: 5px;
 	white-space: nowrap;
 	line-height: 26px;
 	width: 0px;
