@@ -109,7 +109,9 @@ function updateFaviconUrl(tab, tabObj) {
 			src = './icons/globe.svg';
 			svg = true;
 		} else {
-			src = ''
+			setNodeClass(tabObj.favicon, `hidden`, true);
+			setNodeClass(tabObj.faviconSvg, `hidden`, true);
+			return;
 		}
 	} else if (chrome.test(tab.favIconUrl)) {
 		src = `../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`;
