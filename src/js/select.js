@@ -126,6 +126,12 @@ const Selected = (function () {
 		}
 	}
 
+	self.count = function() {
+		let count = 0;
+		for (id in selection) if (selection[id] == true) count++;
+		return count;
+	}
+
 	self.get = function () {
 		endSelect();
 		let r = [];
