@@ -9,14 +9,14 @@
 			"id": "{8d808887-ed13-4931-9f5a-4c0bff979a5a}"
 			, "strict_min_version": "67.0"
 		}
-	},
+	}
 
-	"sidebar_action": {
+	, "sidebar_action": {
 		"default_title": "tabs"
 		, "default_panel": "sidebar.html"
-	},
+	}
 
-	"background": {
+	, "background": {
 		"scripts": [
 			"extern/js-syncqueue/src.js"
 			, "extern/we-tabcache/src.js"
@@ -26,22 +26,18 @@
 			, "js/api.js"
 			, "js/background.js"
 		]
-	},
+	}
 
-	"commands": {
+	, "commands": {
 		"_execute_sidebar_action": {
-			"suggested_key": {
-				"default": "F1"
-			},
-			"description": "Toggle sidebar"
+			"suggested_key": { "default": "F1" }
+			, "description": "Toggle sidebar"
 		}
-	},
+	}
 
-	"options_ui": {
-		"page": "options.html"
-	},
+	, "options_ui": { "page": "options.html" }
 
-	"permissions": [
+	, "permissions": [
 		"bookmarks"
 		, "cookies"
 		, "contextualIdentities"
