@@ -24,6 +24,7 @@
 			, "js/debug.js"
 			, "js/menu.js"
 			, "js/api.js"
+			, "js/locales.js"
 			, "js/background.js"
 		]
 	}
@@ -47,4 +48,6 @@
 		, "storage"
 		, "tabs"
 	]
+
+	, "default_locale": "en"
 }

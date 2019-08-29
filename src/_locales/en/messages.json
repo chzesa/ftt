@@ -1,0 +1,104 @@
+{
+	"sidebarContextMenuReloadTab": {
+		"message": "&Reload Tab"
+	}
+
+	, "sidebarContextMenuReloadTabPlural": {
+		"message": "&Reload Tabs"
+	}
+
+	, "sidebarContextMenuMuteTab": {
+		"message": "&Mute Tab"
+	}
+
+	, "sidebarContextMenuMuteTabPlural": {
+		"message": "&Mute Tabs"
+	}
+
+	, "sidebarContextMenuPinTab": {
+		"message": "&Pin Tab"
+	}
+
+	, "sidebarContextMenuPinTabPlural": {
+		"message": "&Pin Tabs"
+	}
+
+	, "sidebarContextMenuDuplicateTab": {
+		"message": "&Duplicate Tab"
+	}
+
+	, "sidebarContextMenuDuplicateTabPlural": {
+		"message": "&Duplicate Tabs"
+	}
+
+	, "sidebarContextMenuSelectAllTabs": {
+		"message": "&Select All Tabs"
+	}
+
+	, "sidebarContextMenuClearSelection": {
+		"message": "Cl&ear Selection"
+	}
+
+	, "sidebarContextMenuBookmarkTab": {
+		"message": "&Bookmark Tab"
+	}
+
+	, "sidebarContextMenuBookmarkTabPlural": {
+		"message": "&Bookmark Tabs"
+	}
+
+	, "sidebarContextMenuMoveTab": {
+		"message": "Mo&ve Tab"
+	}
+	
+	, "sidebarContextMenuMoveTabPlural": {
+		"message": "Mo&ve Tabs"
+	}
+
+	, "sidebarContextMenuUnloadTab": {
+		"message": "U&nload Tab"
+	}
+
+	, "sidebarContextMenuUnloadTabPlural": {
+		"message": "U&nload Tabs"
+	}
+
+	, "sidebarContextMenuCloseTab": {
+		"message": "&Close Tab"
+	}
+
+	, "sidebarContextMenuCloseTabPlural": {
+		"message": "&Close Tabs"
+	}
+
+	, "sidebarContextMenuMoveToStart": {
+		"message": "Move to &Start"
+	}
+
+	, "sidebarContextMenuMoveToEnd": {
+		"message": "Move to &End"
+	}
+
+	, "sidebarContextMenuMoveToNewWindow": {
+		"message": "Move to New &Window"
+	}
+
+	, "sidebarContextMenuMoveToExistingWindow": {
+		"message": "Window $WINDOW_ID$ (active tab: $ACTIVE_TAB_TITLE$)"
+		, "placeholders": {
+			"window_id": { "content" : "$1" }
+			, "active_tab_title": { "content": "$2" }
+		}
+		, "description": "Displayed when window has 1 tab"
+	}
+
+	, "sidebarContextMenuMoveToExistingWindowPlural": {
+		"message": "Window $WINDOW_ID$ ($TAB_COUNT$ tabs, active: $ACTIVE_TAB_TITLE$)"
+		, "placeholders": {
+			"window_id": { "content" : "$1" }
+			, "tab_count": { "content" : "$2" }
+			, "active_tab_title": { "content": "$3" }
+		}
+		, "description": "Displayed when window has more than 1 tab"
+	}
+}

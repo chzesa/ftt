@@ -789,7 +789,7 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.UpdateSidebarContextMenu:
-			await menuUpdate(msg.tabId);
+			await menuUpdate(msg.tabId, msg.plural);
 			resolve();
 			break;
 
@@ -847,6 +847,7 @@ async function start() {
 	browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 		new Promise((res, rej) => QUEUE.do(bgInternalMessageHandler, msg, sender, res, rej)));
 
+	await getLocalizedStrings();
 	await createSidebarContext();
 	await CACHE.init(init);
 }

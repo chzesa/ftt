@@ -624,7 +624,8 @@ async function init() {
 			browser.runtime.sendMessage({
 				type: MSG_TYPE.UpdateSidebarContextMenu,
 				recipient: -1,
-				tabId
+				tabId,
+				plural: Selected.count() > 1
 			});
 
 			browser.menus.overrideContext({
@@ -632,7 +633,7 @@ async function init() {
 				, tabId
 			});
 		} else {
-			BACKGROUND_PAGE.menuUpdate(tabId).then(_ => {
+			BACKGROUND_PAGE.menuUpdate(tabId, Selected.count() > 1).then(_ => {
 				browser.menus.overrideContext({
 					context: 'tab'
 					, tabId
