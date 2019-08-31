@@ -14,6 +14,9 @@ let QUEUE;
 
 let SESSIONS_VALUES;
 
+const TABS = {};
+const TAB_POOL = [];
+
 function wait(dur) {
 	return new Promise(function (res) {
 		setTimeout(res, dur);
@@ -57,16 +60,171 @@ function setScrollPosition(focusId) {
 		}
 	}
 
-	let focusTab = tabs.get(focusId);
+	let focusTab = TABS[focusId];
 	if (focusTab != null) {
 		showRect(focusTab.node.getBoundingClientRect());
 	}
 
-	showRect(tabs.get(CACHE.getActive(WINDOW_ID).id).node.getBoundingClientRect());
+	showRect(TABS[CACHE.getActive(WINDOW_ID).id].node.getBoundingClientRect());
 
 	if (delta != 0) {
 		document.documentElement.scrollTop += delta;
 	}
+}
+
+function tabNew(tab) {
+	let obj = TABS[tab.id];
+	if (obj != null) {
+		return obj;
+	}
+
+	obj = TAB_POOL.pop();
+
+	if (obj == null) {
+		obj = {};
+
+		let nodeTitle = new_element('div', {
+			class: 'tabTitle'
+		});
+
+		let favicon = new_element('div', {
+			class: 'favicon'
+		});
+
+		let faviconSvg = new_element('img', {
+			class: 'favicon'
+		});
+
+		let context = new_element('div', {
+			class: 'context'
+		});
+
+		let badgeFold = new_element('div', {
+			class: 'badge fold hidden'
+		});
+
+		let badgeMute = new_element('img', {
+			class: 'badge mute hidden',
+			src: './icons/tab-audio-muted.svg'
+		});
+
+		let node = new_element('div', {
+			class: 'tab'
+			, draggable: 'true'
+		}, [context, faviconSvg, favicon, badgeFold, nodeTitle, badgeMute]);
+
+		let children = new_element('div', {
+			class: 'childContainer'
+		});
+
+		let container = new_element('div', {
+			class: 'container'
+		}, [node, children]);
+
+		let lastMouseUp = 0;
+
+		node.addEventListener('mousedown', (event) => {
+			onMouseDown(event, obj.id);
+		}, false);
+
+		node.addEventListener('mouseup', (event) => {
+			lastMouseUp = onMouseUp(event, obj.id, lastMouseUp);
+		}, false);
+
+		node.addEventListener('dragstart', (event) => {
+			onDragStart(event, obj.id);
+		}, false);
+
+		node.addEventListener('drop', (event) => {
+			onDrop(event, obj.id);
+		}, false);
+
+		node.addEventListener('dragenter', (event) => {
+			onDragEnter(event, node);
+		}, false);
+
+		node.addEventListener('dragover', (event) => {
+			onDragOver(event);
+		}, false);
+
+		node.addEventListener('dragend', (event) => {
+			onDragEnd(event);
+		}, false);
+
+		obj.container = container;
+		obj.node = node;
+		obj.childContainer = children;
+
+		obj.favicon = favicon;
+		obj.faviconSvg = faviconSvg;
+		obj.title = nodeTitle;
+		obj.badgeFold = badgeFold;
+		obj.badgeMute = badgeMute;
+		obj.context = context;
+	}
+
+	obj.id = tab.id;
+	obj.container.setAttribute('tabId', tab.id);
+	TABS[tab.id] = obj;
+
+	setNodeClass(obj.badgeFold, 'hidden', true);
+	setNodeClass(obj.node, 'selection', false); // todo
+
+	updateTitle(tab, obj);
+	updateDiscarded(tab, obj);
+	updateMute(tab, obj);
+	updateContextualIdentity(tab, obj);
+
+	// favicon handled via updateStatus
+	setNodeClass(obj.node, 'pinned', tab.pinned);
+	updateStatus(tab, obj);
+
+	return obj;
+}
+
+function tabReleasePartial(ids) {
+	let frag = document.createDocumentFragment();
+	if (Array.isArray(ids)) {
+		ids.forEach(id => {
+			let obj = TABS[id];
+			if (obj == null) return;
+			delete TABS[id];
+			frag.appendChild(obj.container);
+			TAB_POOL.push(obj);
+		});
+	} else {
+		let obj = TABS[ids];
+		if (obj == null) return;
+		delete TABS[ids];
+		frag.appendChild(obj.container);
+		TAB_POOL.push(obj);
+	}
+}
+
+function tabRelease(id) {
+	let obj = TABS[id];
+	if (obj == null) return;
+	delete TABS[id];
+
+	let children = obj.childContainer.children;
+	let newParent;
+	if (children.length > 0) {
+		newParent = children[0];
+		obj.container.parentNode.insertBefore(newParent, obj.container);
+	}
+
+	if (children.length > 0) {
+		let frag = document.createDocumentFragment();
+
+		while (children.length > 0) {
+			frag.appendChild(children[0]);
+		}
+
+		newParent.children[1].appendChild(frag);
+	}
+
+	HIDDEN_ANCHOR.appendChild(obj.container);
+	TAB_POOL.push(obj);
 }
 
 function updateAttention(tab, tabObj) {
@@ -166,7 +324,7 @@ const update_functions = {
 }
 
 function onUpdated(tab, info) {
-	let tabObj = tabs.get(tab.id);
+	let tabObj = TABS[tab.id];
 	if (tabObj == null && info.hidden === undefined) return;
 
 	for (let key in info) {
@@ -177,7 +335,7 @@ function onUpdated(tab, info) {
 }
 
 function fold(id) {
-	let tabObj = tabs.get(id);
+	let tabObj = TABS[id];
 	if (tabObj == null) return;
 
 	let node = TREE.get(id);
@@ -187,7 +345,7 @@ function fold(id) {
 }
 
 function onFold(id) {
-	let tabObj = tabs.get(id);
+	let tabObj = TABS[id];
 	if (tabObj == null) return;
 
 	let release;
@@ -204,7 +362,7 @@ function onFold(id) {
 	if (node.childNodes.length == 0) return;
 	release = [];
 	recurse(node);
-	tabs.releaseDirty(release);
+	tabReleasePartial(release);
 
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
@@ -213,14 +371,14 @@ function onFold(id) {
 }
 
 function unfold(id) {
-	let tabObj = tabs.get(id);
+	let tabObj = TABS[id];
 	if (tabObj == null) return;
 	setValue(id, 'fold', false);
 	if (!USE_API) onUnfold(id);
 }
 
 function onUnfold(id) {
-	let tabObj = tabs.get(id);
+	let tabObj = TABS[id];
 	if (tabObj == null) return;
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
 	displaySubtree(id);
@@ -263,7 +421,7 @@ function unfoldAncestors(id) {
 			setValue(node.id, 'fold', false);
 			let tab = CACHE.get(node.id);
 			if (!tab.hidden) {
-				tabs.addElement(tab);
+				tabNew(tab);
 				lastFoldedId = node.id;
 			}
 		}
@@ -279,9 +437,9 @@ function unfoldAncestors(id) {
 
 function insertChild(id, parentId, container = null) {
 	let index = CACHE.get(id).index;
-	let childContainer = tabs.get(parentId).childContainer;
+	let childContainer = TABS[parentId].childContainer;
 
-	if (container == null) container = tabs.get(id).container;
+	if (container == null) container = TABS[id].container;
 
 	if (container.parentNode == childContainer) {
 		HIDDEN_ANCHOR.appendChild(container);
@@ -319,7 +477,7 @@ function displaySubtree(id) {
 		let tab = CACHE.get(node.id);
 
 		if (tab != null && !tab.hidden){
-			frag.appendChild( tabs.addElement(tab).container );
+			frag.appendChild( tabNew(tab).container );
 
 			if (getValue(tab.id, 'fold')) {
 				fold(tab.id);
@@ -335,7 +493,7 @@ function displaySubtree(id) {
 			recurse(child, frag);
 		});
 
-		let tabObj = tabs.get(node.id);
+		let tabObj = TABS[node.id];
 		if (tabObj != null) tabObj.childContainer.appendChild(frag);
 	}
 
@@ -359,7 +517,7 @@ function updateHidden(tab, tabObj) {
 	}
 
 	if (tab.hidden) {
-		tabs.releaseDirty(tab.id);
+		tabReleasePartial(tab.id);
 	}
 
 	displaySubtree(tab.id);
@@ -369,7 +527,7 @@ function updateHidden(tab, tabObj) {
 function onActivated(tabId) {
 	unfoldAncestors(tabId);
 
-	let newActiveNode = tabs.get(tabId);
+	let newActiveNode = TABS[tabId];
 	newActiveNode = newActiveNode.node;
 
 	if (CURRENT_ACTIVE_NODE != null)
@@ -407,8 +565,8 @@ function onMoved(id, info) {
 }
 
 function onRemoved(tab, info, values) {
-	let tabObj = tabs.get(tab.id);
-	tabs.delete(tab.id);
+	let tabObj = TABS[tab.id];
+	tabRelease(tab.id);
 	Selected.requireUpdate();
 
 	if (tab.hidden || values.fold != true || tabObj == null) return;
@@ -420,7 +578,7 @@ function onRemoved(tab, info, values) {
 }
 
 function onCreated(tab) {
-	let o = tabs.new(tab);
+	let o = tabNew(tab);
 	if (tab.hidden) return;
 	let id = tab.id;
 	if (!unfoldAncestors(id)) {
@@ -469,9 +627,9 @@ function signal(param) {
 // perhaps by having tabs in a flat structure instead of hierarchial
 // this would also trivialize virtualizing the sidebar
 async function refresh() {
-	for (let k in tabs.inner()) {
+	for (let k in TABS) {
 		let id = Number(k);
-		if (id != -1) tabs.delete(id);
+		if (id != -1) tabRelease(id);
 	}
 
 	displaySubtree(-1);
@@ -569,7 +727,7 @@ async function init() {
 	let fakeTab = {
 		id: -1
 	};
-	let rootTab = tabs.new(fakeTab);
+	let rootTab = tabNew(fakeTab);
 
 	rootTab.node.remove();
 	rootTab.container.remove();
@@ -599,12 +757,11 @@ async function init() {
 
 	Selected.init(function () {
 		let ret = {};
-		let array = tabs.inner();
 
-		for (let i in array) {
-			let tabObj = array[i];
-			if (i != -1 && tabObj != null)
-			ret[array[i].id] = tabObj.node;
+		for (let k in TABS) {
+			let tabObj = TABS[k];
+			if (k != -1 && tabObj != null)
+			ret[Number(k)] = tabObj.node;
 		}
 		return ret;
 	});
