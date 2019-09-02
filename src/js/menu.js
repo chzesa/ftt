@@ -125,13 +125,6 @@ async function menuActionMoveToWindow(info, tab) {
 async function createSidebarContext() {
 	SIDEBAR_MENU_PATTERN = browser.runtime.getURL('sidebar.html');
 
-	// todo move to separate file
-	const SIGNALS = {
-		dragDrop: 0,
-		selectAll: 1,
-		deselectAll: 2
-	};
-
 	browser.menus.create(menuCreateInfo('reload', i18nSidebarContextMenuReloadTab, async (info, tab) => {
 		(await menuGetSelection(tab)).forEach(id => browser.tabs.reload(id));
 	}));
@@ -179,11 +172,11 @@ async function createSidebarContext() {
 	browser.menus.create(separator);
 
 	browser.menus.create(menuCreateInfo('select', i18nSidebarContextMenuSelectAllTabs, (info, tab) => {
-		sidebar(tab.windowId, 'signal', {type: SIGNALS.selectAll});
+		sidebar(tab.windowId, 'signal', {type: SIGNAL_TYPE.selectAll});
 	}));
 
 	browser.menus.create(menuCreateInfo('deselect', i18nSidebarContextMenuClearSelection, (info, tab) => {
-		sidebar(tab.windowId, 'signal', {type: SIGNALS.deselectAll});
+		sidebar(tab.windowId, 'signal', {type: SIGNAL_TYPE.deselectAll});
 	}));
 
 	browser.menus.create(menuCreateInfo('bookmark', i18nSidebarContextMenuBookmarkTab, async (info, tab) => {

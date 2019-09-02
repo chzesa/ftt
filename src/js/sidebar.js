@@ -589,32 +589,25 @@ function onCreated(tab) {
 	setScrollPosition(tab.id);
 }
 
-// todo move to separate file
-const SIGNALS = {
-	dragDrop: 0,
-	selectAll: 1,
-	deselectAll: 2
-};
-
 function broadcast(signal) {
 	if (USE_API)
 		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.Signal, signal});
 	else
-		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast, { type: SIGNALS.dragDrop });
+		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast, { type: SIGNAL_TYPE.dragDrop });
 }
 
 function signal(param) {
 	switch(param.type) {
-	case SIGNALS.dragDrop:
+	case SIGNAL_TYPE.dragDrop:
 		document.getElementById('dragIndicator').style.display = 'none';
 		break;
-	case SIGNALS.selectAll:
+	case SIGNAL_TYPE.selectAll:
 		CACHE.forEach(tab => {
 			unfold(tab.id);
 			Selected.add(tab.id);
 		}, WINDOW_ID, tab => !tab.hidden);
 		break;
-	case SIGNALS.deselectAll:
+	case SIGNAL_TYPE.deselectAll:
 		Selected.clear();
 		break;
 	default:

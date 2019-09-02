@@ -1,3 +1,9 @@
+const SIGNAL_TYPE = {
+	dragDrop: 0,
+	selectAll: 1,
+	deselectAll: 2
+};
+
 const MSG_TYPE = {
 	Register: 0,
 	DropMoving: 1,

@@ -99,7 +99,7 @@ async function onDrop(event, tabId) {
 				selection, tabId, DROP_BEFORE, WINDOW_ID);
 	}
 
-	broadcast(SIGNALS.dragDrop);
+	broadcast(SIGNAL_TYPE.dragDrop);
 }
 
 function onDragEnter(event, node) {
@@ -137,5 +137,5 @@ function onDragOver(event) {
 function onDragEnd(event) {
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'none';
-	broadcast(SIGNALS.dragDrop);
+	broadcast(SIGNAL_TYPE.dragDrop);
 }
