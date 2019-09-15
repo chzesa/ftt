@@ -188,10 +188,28 @@ async function newWindow(windowId) {
 			parentId = tab.openerTabId;
 		}
 
-		if (parentId == null) return;
+		try {
+			if (parentId == null) {
+				console.log(`Found tab ${tab.id} (${tab.url}) with no parentId`);
+				return;
+			}
 
-		let ancestors = possibleAncestors(count);
-		if (!ancestors.includes(parentId)) return;
+			let ancestors = possibleAncestors(count);
+			if (!ancestors.includes(parentId)) {
+				console.log(`Tab ${tab.id} (${tab.url}) had parentId ${parentId}, but it wasn't included in ancestors list`);
+				console.log(`Ancestors: ${Array.toString(ancestors.map(toId)}`);
+				let parentTab = CACHE.get(toId(parentPid));
+				if (parentTab == null) {
+					console.log(`Parent with pid ${[parentId]} doesn't exist`);
+				} else {
+					console.log(parentTab);
+				}
+				return;
+			}
+		} catch(e) {
+			console.log(e);
+			return;
+		}
 
 		let node = tree.new(id);
 		tree.changeParent(id, parentId);
