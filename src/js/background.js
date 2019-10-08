@@ -13,7 +13,7 @@ let STARTING = true;
 let CACHE;
 let QUEUE;
 
-let HIJACK_ON_ACTIVATED = null;
+let LAST_CLOSED_INFO = null;
 let NEXT_PERSISTENT_ID;
 let SELECTION_SOURCE_WINDOW;
 
@@ -294,26 +294,34 @@ async function onMoved(tab, info) {
 async function onActivated(tab, info) {
 	let windowId = tab.windowId;
 
-	if (HIJACK_ON_ACTIVATED != null && windowId == HIJACK_ON_ACTIVATED.windowId) {
-		let tree = TREE[windowId];
-		let lin = tree.debug().array;
-		let i = HIJACK_ON_ACTIVATED.index;
+	if (LAST_CLOSED_INFO != null && windowId == LAST_CLOSED_INFO.windowId
+		&& tab.index >= LAST_CLOSED_INFO.index) {
 
-		while (i > -1) {
-			let node = lin[i--];
-			if (node != null && CACHE.get(node.id).hidden == false) {
-				try {
-					await browser.tabs.update(node.id, {
-						active: true
-					});
-					break;
+		let tree = TREE[windowId];
+		if (tree.get(tab.id).parentId != LAST_CLOSED_INFO.parentId) {
+			let lin = tree.debug().array;
+			let i = LAST_CLOSED_INFO.index - 1;
+			let node;
+
+			while (i > -1) {
+				node = lin[i--];
+				if (node != null && CACHE.get(node.id).hidden == false) {
+					try {
+						await browser.tabs.update(node.id, {
+							active: true
+						});
+						break;
+					}
+					catch (e) {}
 				}
-				catch (e) {}
+
+				if (node.parentId == -1) break;
 			}
 		}
+
 	}
 
-	HIJACK_ON_ACTIVATED = null;
+	LAST_CLOSED_INFO = null;
 
 	sidebar(windowId, 'onActivated', tab.id);
 }
@@ -343,14 +351,11 @@ async function onRemoved(tab, info, values) {
 	// happens, we'll hijack the onActivated event and switch to a tab in
 	// the previous tree.
 	if (tab.active) {
-		let replacement = tree.getIndexed(index);
-		if (replacement != null && replacement.parentId != node.parentId) {
-			HIJACK_ON_ACTIVATED = {
-				id: tree.getIndexed(index - 1).id
-				, windowId
-				, index: index - 1
-			};
-		}
+		LAST_CLOSED_INFO = {
+			index: tab.index
+			, windowId: tab.windowId
+			, parentId: node.parentId
+		};
 	}
 
 	delete ID_TO_PID[id];
