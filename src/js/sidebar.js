@@ -260,12 +260,12 @@ function updateMute(tab, tabObj) {
 function updateFaviconUrl(tab, tabObj) {
 	if (tab.status == `loading`) return;
 	const chrome = /^chrome:\/\/(.*)/;
+	const isSvg = /\.svg$/;
+
 	let src;
-	let svg = false;
 	if (tab.favIconUrl == null) {
 		if (tab.pinned) {
 			src = './icons/globe.svg';
-			svg = true;
 		} else {
 			setNodeClass(tabObj.favicon, `hidden`, true);
 			setNodeClass(tabObj.faviconSvg, `hidden`, true);
@@ -273,12 +273,11 @@ function updateFaviconUrl(tab, tabObj) {
 		}
 	} else if (chrome.test(tab.favIconUrl)) {
 		src = `../icons/chrome/${chrome.exec(tab.favIconUrl)[1]}`;
-		svg = true;
 	} else {
 		src = tab.favIconUrl;
 	}
 
-	if (svg) {
+	if (isSvg.test(src)) {
 		setNodeClass(tabObj.favicon, `hidden`, true);
 		setNodeClass(tabObj.faviconSvg, `hidden`, false);
 		tabObj.faviconSvg.setAttribute(`src`, src);
