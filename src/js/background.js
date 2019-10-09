@@ -12,6 +12,7 @@ let STARTING = true;
 
 let CACHE;
 let QUEUE;
+let CONFIG;
 
 let LAST_CLOSED_INFO = null;
 let NEXT_PERSISTENT_ID;
@@ -832,6 +833,24 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 	}
 }
 
+async function initConfig() {
+	const defaults = {
+	};
+
+	CONFIG = await browser.storage.local.get();
+	if (CONFIG == null) CONFIG = {};
+
+	let manifest = await browser.runtime.getManifest();
+	if (CONFIG.firstInstallVersion == null) {
+		CONFIG.firstInstallVersion = manifest.version;
+	};
+
+	for (let k in defaults) CONFIG[k] === undefined ? defaults[k] : CONFIG[k];
+
+	CONFIG.version = manifest.version;
+	await browser.storage.local.set(CONFIG);
+}
+
 async function start() {
 	CACHE = newCache({
 		listeners: {
@@ -847,6 +866,8 @@ async function start() {
 	});
 
 	QUEUE = CACHE.debug().queue;
+
+	await initConfig();
 
 	browser.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse) {
 		return new Promise(function (res, rej) {
