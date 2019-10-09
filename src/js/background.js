@@ -301,8 +301,8 @@ async function onMoved(tab, info) {
 async function onActivated(tab, info) {
 	let windowId = tab.windowId;
 
-	if (LAST_CLOSED_INFO != null && windowId == LAST_CLOSED_INFO.windowId
-		&& tab.index >= LAST_CLOSED_INFO.index) {
+	if (CONFIG.stayInTreeOnTabClose && LAST_CLOSED_INFO != null
+		&& windowId == LAST_CLOSED_INFO.windowId && tab.index >= LAST_CLOSED_INFO.index) {
 
 		let tree = TREE[windowId];
 		if (tree.get(tab.id).parentId != LAST_CLOSED_INFO.parentId) {
@@ -858,6 +858,7 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 async function initConfig() {
 	const defaults = {
 		descendantOpenPosition: DescendantOpenPosition.last
+		, stayInTreeOnTabClose: true
 	};
 
 	CONFIG = await browser.storage.local.get();
