@@ -764,8 +764,6 @@ function bug1394477Workaround(ids, windowId, index) {
 	}
 
 	ids.forEach(id => {
-		let tab = CACHE.get(id);
-
 		browser.tabs.move(id, {
 			index,
 			windowId
