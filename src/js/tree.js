@@ -65,10 +65,6 @@ class TreeStructure {
 			ids.push(node.id);
 
 			node.childNodes.forEach(child => {
-				if (child == null) {
-					console.log(`Node id ${node.id} had null child`);
-					return;
-				}
 				recurse(child);
 			});
 		}
