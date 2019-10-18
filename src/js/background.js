@@ -622,6 +622,7 @@ function sortFilterSidebarSelection(ids) {
 }
 
 async function sidebarDropMoving(ids, tarId, before, windowId) {
+	if (ids.length == 0) return;
 	let tree = TREE[windowId];
 	let index;
 
@@ -668,6 +669,7 @@ async function sidebarDropMoving(ids, tarId, before, windowId) {
 }
 
 async function sidebarDropParenting(ids, parentId, windowId) {
+	if (ids.length == 0) return;
 	let tree = TREE[windowId];
 	if (tree.get(parentId) == null) return;
 	if (CACHE.get(parentId).pinned) return;
