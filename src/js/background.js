@@ -204,7 +204,8 @@ async function newWindow(windowId) {
 			let ancestors = possibleAncestors(count);
 			if (!ancestors.includes(parentId)) {
 				console.log(`Tab ${tab.id} (${tab.url}) had parentId ${parentId}, but it wasn't included in ancestors list`);
-				console.log(`Ancestors: ${Array.toString(ancestors.map(toId))}`);
+				let ancestorIds = ancestors.map(toId);
+				console.log(`Ancestors: ${ancestorIds}`);
 				let parentTab = CACHE.get(parentId);
 				if (parentTab == null) {
 					console.log(`Parent with pid ${[parentId]} doesn't exist`);
