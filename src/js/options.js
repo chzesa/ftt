@@ -7,7 +7,7 @@ async function init() {
 	debug_mode_toggle.addEventListener('click', function (event) {
 		browser.storage.local.set({
 			debug_mode: debug_mode_toggle.checked
-		});
+		}).then(_ => browser.runtime.reload());
 	});
 }
 
