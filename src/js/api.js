@@ -2,6 +2,7 @@ const SIGNAL_TYPE = {
 	dragDrop: 0
 	, selectAll: 1
 	, deselectAll: 2
+	, configUpdate: 3
 };
 
 const MSG_TYPE = {
