@@ -2,7 +2,7 @@
 	"manifest_version": 2
 	, "name": "ftt"
 	, "description": "A tab tree addon"
-	, "version": "0.2.16"
+	, "version": "0.2.17"
 
 	, "applications": {
 		"gecko": {
