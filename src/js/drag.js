@@ -43,7 +43,10 @@ function onMouseUp(event, id, lastMouseUp) {
 	return time;
 }
 function onDragStart(event, id) {
-	if (event.ctrlKey) return;
+	if (event.ctrlKey) {
+		event.preventDefault();
+		return;
+	}
 	event.stopPropagation();
 	let tabId = id;
 	event.dataTransfer.setData('number', tabId);
