@@ -204,7 +204,15 @@ function tabReleasePartial(ids) {
 function tabRelease(id) {
 	let obj = TABS[id];
 	if (obj == null) return;
+
+	tabHide(id);
+	TAB_POOL.push(obj);
 	delete TABS[id];
+}
+
+function tabHide(id) {
+	let obj = TABS[id];
+	if (obj == null) return;
 
 	let children = obj.childContainer.children;
 	let newParent;
@@ -224,7 +232,6 @@ function tabRelease(id) {
 	}
 
 	HIDDEN_ANCHOR.appendChild(obj.container);
-	TAB_POOL.push(obj);
 }
 
 function updateAttention(tab, tabObj) {
@@ -361,7 +368,7 @@ function onFold(id) {
 	if (node.childNodes.length == 0) return;
 	release = [];
 	recurse(node);
-	tabReleasePartial(release);
+	release.forEach(tabHide);
 
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
@@ -516,7 +523,7 @@ function updateHidden(tab, tabObj) {
 	}
 
 	if (tab.hidden) {
-		tabReleasePartial(tab.id);
+		tabHide(tab.id);
 	}
 
 	displaySubtree(tab.id);
