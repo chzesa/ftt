@@ -244,8 +244,11 @@ async function newWindow(windowId) {
 		CACHE.setValue(tab.id, 'parentPid', toPid(node.parentId));
 	}, windowId);
 
-	tree_debug_mixin(tree);
-	tree.validate();
+	if (DEBUG_MODE) {
+		tree_debug_mixin(tree);
+		tree.validate();
+	}
+
 	return tree;
 }
 
