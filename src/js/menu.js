@@ -12,7 +12,9 @@ function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, ico
 		let count = 0;
 		let changed = false;
 
-		iteratorFn(param)(v => {
+		let a = iteratorFn(param);
+
+		a.forEach(v => {
 			if (!filterFn(v, param)) { return; }
 			let title = titleFn(v, param);
 			let icons = iconFn(v, param);
@@ -162,7 +164,11 @@ async function createSidebarContext() {
 	SIDEBAR_MENU_PATTERN = browser.runtime.getURL('sidebar.html');
 
 	SUBMENU_MOVE_WINDOW = await dynamicSubmenu(`moveToWindow`, `move`,
-		_ => CACHE.forEachWindow,
+		() => {
+			let r = [];
+			CACHE.forEachWindow(w => r.push(w));
+			return r;
+		},
 		(windowId, tab) => windowId != tab.windowId,
 		(windowId, tab) => {
 			let numTabs = CACHE.debug().windows[windowId].length;
