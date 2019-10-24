@@ -252,3 +252,101 @@ async function SET_PERSISTENT_ID(value) {
 		next_persistent_id: NEXT_PERSISTENT_ID
 	});
 }
+
+async function testSidebarInteraction(count = 100, interval = 250) {
+	if (!DEBUG_MODE) {
+		console.log(`Debug mode not enabled.`);
+		return;
+	}
+	let pendingWindow;
+
+	flip = (perc = 0.5) => Math.random() < perc;
+
+	randInWindow = (windowId) => {
+		let tabs = CACHE.debug().windows[windowId];
+		let i = Math.floor(Math.random() * tabs.length);
+		return tabs[i].id;
+	}
+
+	randWindow = () => {
+		let keys = Object.keys(CACHE.debug().windows);
+		if (keys.length == 1 && pendingWindow == null) pendingWindow = browser.windows.create();
+		let i = Math.floor(Math.random() * keys.length);
+		return Number(keys[i]);
+	}
+
+	selectRandomTabs = (windowId) => {
+		let set = new Set();
+		let tabs = CACHE.debug().windows[windowId];
+
+		while(flip(0.8) && set.size < tabs.length - 1) {
+			while(true) {
+				let id = randInWindow(windowId);
+
+				if (!set.has(id)) {
+					set.add(id);
+					break;
+				}
+			}
+		}
+
+		let ret = [];
+		set.forEach(v => ret.push(v));
+		return ret;
+	}
+
+	while(count-- > 0) {
+		// can't await queue item since sidebar interaction doesn't await browser operation
+		await wait(interval);
+		if (pendingWindow != null) {
+			await pendingWindow;
+			pendingWindow = null;
+		}
+
+		QUEUE.do(async () => {
+			let srcWindowId = randWindow();
+			let dstWindowId = randWindow();
+			setSelectionSourceWindow(srcWindowId);
+			let ids = selectRandomTabs(srcWindowId);
+			let target = randInWindow(dstWindowId);
+
+			if (flip()) {
+				console.log(`Moving next to ${target} [${srcWindowId}]->[${dstWindowId}] [${ids.toString()}]`);
+				await sidebarDropMoving(ids, target, flip(), dstWindowId);
+			} else {
+				console.log(`Parenting to ${target} [${srcWindowId}]->[${dstWindowId}] [${ids.toString()}]`);
+				await sidebarDropParenting(ids, target, dstWindowId);
+			}
+		});
+	}
+}
+
+async function brickData(count = -1) {
+	randTab = () => {
+		let tabs = CACHE.debug().tabs;
+		let i = Math.floor(Math.random() * Object.keys(CACHE.debug().tabs).length);
+		return tabs[ Object.keys(tabs)[i] ];
+	}
+
+	if (count == -1) count = Math.floor(Math.random() * Object.keys(CACHE.debug().tabs).length);
+	let set = new Set();
+
+	while (set.size < count) {
+		let tab = randTab();
+
+		while(set.has(tab.id)) tab = randTab();
+
+		let rand = Math.random();
+
+		if (rand < 0.3) {
+			CACHE.removeValue(tab.id, 'parentPid');
+		} else if (rand < 0.6) {
+			CACHE.removeValue(tab.id, 'pid');
+		} else {
+			CACHE.removeValue(tab.id, 'parentPid');
+			CACHE.removeValue(tab.id, 'pid');
+		}
+
+		set.add(tab.id);
+	}
+}
