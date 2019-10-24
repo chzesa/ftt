@@ -2,6 +2,7 @@ let SIDEBAR_MENU_PATTERN;
 let SIDEBAR_CONTEXT_IS_PLURAL = false;
 const DYNAMIC_MAP = {};
 let SUBMENU_MOVE_WINDOW;
+let SUBMENU_REOPEN_CONTAINER;
 
 function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, iconFn, mapFn, onclick) {
 	let array = [];
@@ -79,15 +80,18 @@ function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, ico
 }
 function menuUpdate(tabId, plural = false) {
 	let tab = CACHE.get(tabId);
-
+	let changed = false;
 	if (SIDEBAR_CONTEXT_IS_PLURAL != plural) {
 		if (plural) updateMenuItemsPlural();
 		else updateMenuItemsSingular();
 		SIDEBAR_CONTEXT_IS_PLURAL = plural;
+		changed = true;
 	}
 
-	SUBMENU_MOVE_WINDOW.update(tab);
-	browser.menus.refresh();
+	changed = SUBMENU_MOVE_WINDOW.update(tab) || changed;
+	changed = SUBMENU_REOPEN_CONTAINER.update(tab) || changed;
+
+	if ( changed ) { browser.menus.refresh(); }
 }
 
 function updateMenuItemsPlural() {
@@ -160,6 +164,33 @@ async function menuActionMoveToWindow(info, tab) {
 	});
 }
 
+function reopenInContainer(ids, cookieStoreId) {
+	let p = [];
+	let count = 0;
+
+	ids.forEach(id => {
+		let tab = CACHE.get(id);
+
+		p.push(browser.tabs.create({
+			active: tab.active,
+			cookieStoreId,
+			index: tab.index + 1 + count++,
+			openerTabId: tab.openerTabId,
+			pinned: tab.pinned,
+			url: tab.url,
+			windowId: tab.windowId
+		}));
+	});
+
+	for (let i = 0; i < ids.length; i++) {
+		try {
+			p[i].then(() => browser.tabs.remove(ids[i]));
+		} catch(e) {
+			console.log(e);
+		}
+	}
+}
+
 async function createSidebarContext() {
 	SIDEBAR_MENU_PATTERN = browser.runtime.getURL('sidebar.html');
 
@@ -177,9 +208,34 @@ async function createSidebarContext() {
 				? `${numTabs} tabs`
 				: ``} active: ${activeInWindow.title})`;
 		},
-		_ => { return {}; },
+		_ => {return {}; },
 		(windowId, tab) => windowId,
 		menuActionMoveToWindow
+	);
+
+	SUBMENU_REOPEN_CONTAINER = await dynamicSubmenu(`reopen`, `reopen`,
+		() => {
+			let r = [];
+			let ret = Object.keys(CI_CACHE).forEach(ci => r.push(ci));
+			return r;
+		},
+		() => true,
+		(key, tab) => CI_CACHE[key].name,
+		(key, tab) => {
+			let ret = {};
+			let ci = CI_CACHE[key];
+			ret["16"] = ci.iconUrl;
+			return ret;
+		},
+		(key, tab) => CI_CACHE[key].cookieStoreId,
+		async (info, tab) => {
+			let ids = await menuGetSelection(tab);
+			if (ids.length == 0) { return; }
+
+			QUEUE.do(async () => {
+				reopenInContainer(ids, DYNAMIC_MAP[info.menuItemId]);
+			});
+		}
 	);
 
 	browser.menus.create(menuCreateInfo('reload', i18nSidebarContextMenuReloadTab, async (info, tab) => {
@@ -247,9 +303,29 @@ async function createSidebarContext() {
 		});
 	}));
 
-	// browser.menus.create(menuCreateInfo('reopen', 'Reopen in Container', (info, tab) => {
+	browser.menus.create(menuCreateInfo('reopen', 'Reopen in Container', null));
 
-	// }));
+	browser.menus.create(menuCreateInfo('reopenInNewContainer', 'Reopen in New Container', async (info, tab) => {
+		const colors = ['blue', 'turquoise', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'toolbar'];
+		const icons = ['fingerprint', 'briefcase', 'dollar', 'cart', 'circle', 'gift', 'vacation', 'food', 'fruit', 'pet', 'tree', 'chill', 'fence'];
+
+		let ids = await menuGetSelection(tab);
+		if (ids.length == 0) { return; }
+
+		QUEUE.do(async () => {
+			let ci = await browser.contextualIdentities.create({
+				name: `New Container`,
+				color: colors[Math.floor(Math.random() * colors.length)],
+				icon: icons[Math.floor(Math.random() * icons.length)]
+			});
+
+			reopenInContainer(ids, ci.cookieStoreId);
+		});
+	}, 'reopen'));
+
+	let reopenSeparator = menuCreateInfo(null, null, null, 'reopen');
+	reopenSeparator.type = 'separator';
+	browser.menus.create(reopenSeparator);
 
 	browser.menus.create(menuCreateInfo('move', i18nSidebarContextMenuMoveTab, null));
 

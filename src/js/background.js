@@ -7,6 +7,8 @@ const PID_TO_ID = {};
 const MOVE_CACHE = {};
 const RESTORE_CACHE = {};
 
+const CI_CACHE = {};
+
 let DEBUG_MODE;
 let STARTING = true;
 
@@ -874,6 +876,8 @@ async function initConfig() {
 
 	CONFIG.version = manifest.version;
 	await browser.storage.local.set(CONFIG);
+	let cis = await browser.contextualIdentities.query({});
+	cis.forEach( ci => CI_CACHE[ci.cookieStoreId] = ci );
 }
 
 async function start() {
@@ -891,6 +895,18 @@ async function start() {
 	});
 
 	QUEUE = CACHE.debug().queue;
+
+	browser.contextualIdentities.onCreated.addListener(info => QUEUE.do(async () => {
+		CI_CACHE[info.contextualIdentity.cookieStoreId] = info.contextualIdentity;
+	}));
+
+	browser.contextualIdentities.onRemoved.addListener(info => QUEUE.do(async () => {
+		delete CI_CACHE[info.contextualIdentity.cookieStoreId];
+	}));
+
+	browser.contextualIdentities.onUpdated.addListener(info => QUEUE.do(async () => {
+		CI_CACHE[info.contextualIdentity.cookieStoreId] = info.contextualIdentity;
+	}));
 
 	await initConfig();
 
