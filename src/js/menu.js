@@ -1,9 +1,80 @@
 let SIDEBAR_MENU_PATTERN;
-const SUBMENU_TAB_MOVE = [];
-const SUBMENU_TAB_MOVE_MAP = {};
-const SUBMENU_REOPEN_CONTAINER = [];
 let SIDEBAR_CONTEXT_IS_PLURAL = false;
+const DYNAMIC_MAP = {};
+let SUBMENU_MOVE_WINDOW;
 
+function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, iconFn, mapFn, onclick) {
+	let array = [];
+	let state = [];
+	let ret = { array, state }
+
+	ret.update = param => {
+		let count = 0;
+		let changed = false;
+
+		iteratorFn(param)(v => {
+			if (!filterFn(v, param)) { return; }
+			let title = titleFn(v, param);
+			let icons = iconFn(v, param);
+
+			let menuIndex = count++;
+			let info = array[menuIndex];
+
+			if (info == null) {
+				info = {
+					id: `${menuPrefix}${menuIndex}`
+					, title
+					, contexts: ['tab']
+					, onclick
+					, parentId
+				};
+
+				if (icons["16"] != null) { info.icons = icons; }
+
+				array.push(info);
+				browser.menus.create(info);
+				state[menuIndex] = { visible: true, title, icons };
+				changed = true;
+			} else {
+				if (!state[menuIndex].visible
+					|| state[menuIndex].title != title
+					|| state[menuIndex].icons["16"] != icons["16"]
+					|| state[menuIndex].icons["32"] != icons["32"]) {
+					changed = true;
+
+					state[menuIndex].visible = true;
+					state[menuIndex].title = title;
+					state[menuIndex].icons = icons;
+
+					let updateInfo = {
+						title,
+						visible: true
+					};
+
+					if (icons["16"] != null) { updateInfo.icons = icons; }
+
+					browser.menus.update(info.id, updateInfo);
+				}
+			}
+
+			DYNAMIC_MAP[info.id] = mapFn(v, param);
+		});
+
+		for (let i = count; i < array.length; i++) {
+			if (state[i].visible) {
+				changed = true;
+				state[i].visible = false;
+				browser.menus.update(array[i].id, {
+					visible: false
+				});
+			}
+		}
+
+		return changed;
+	}
+
+	return ret;
+}
 function menuUpdate(tabId, plural = false) {
 	let tab = CACHE.get(tabId);
 
@@ -13,7 +84,8 @@ function menuUpdate(tabId, plural = false) {
 		SIDEBAR_CONTEXT_IS_PLURAL = plural;
 	}
 
-	return updateMoveToWindowSubmenu(tab.windowId);
+	SUBMENU_MOVE_WINDOW.update(tab);
+	browser.menus.refresh();
 }
 
 function updateMenuItemsPlural() {
@@ -36,42 +108,6 @@ function updateMenuItemsSingular() {
 	browser.menus.update('move', { title: i18nSidebarContextMenuMoveTab });
 	browser.menus.update('unload', { title: i18nSidebarContextMenuUnloadTab });
 	browser.menus.update('close', { title: i18nSidebarContextMenuCloseTab });
-
-}
-async function updateMoveToWindowSubmenu(excludeWindowId) {
-	let count = 0;
-
-	CACHE.forEachWindow(windowId => {
-		if (windowId == excludeWindowId) return;
-		let menuIndex = count++
-		let info = SUBMENU_TAB_MOVE[menuIndex];
-
-		let numTabs = CACHE.debug().windows[windowId].length;
-		let activeInWindow = CACHE.getActive(windowId);
-
-		let title = numTabs > 1
-			? browser.i18n.getMessage("sidebarContextMenuMoveToExistingWindowPlural", [windowId, numTabs, activeInWindow.title])
-			: browser.i18n.getMessage("sidebarContextMenuMoveToExistingWindow", [windowId, activeInWindow.title]);
-
-		if (info == null) {
-			info = menuCreateInfo(`moveToWindow${menuIndex}`, title,menuActionMoveToWindow, 'move');
-			SUBMENU_TAB_MOVE.push(info);
-			browser.menus.create(info);
-		} else {
-			browser.menus.update(info.id, {
-				title,
-				visible: true
-			});
-		}
-
-		SUBMENU_TAB_MOVE_MAP[info.id] = windowId;
-	});
-
-	for (let i = count; i < SUBMENU_TAB_MOVE.length; i++) {
-		browser.menus.update(SUBMENU_TAB_MOVE[i].id, {
-			visible: false
-		});
-	}
 }
 
 async function menuGetSelection(tab) {
@@ -112,7 +148,7 @@ function menuCreateInfo(id, title, callback, parentId) {
 async function menuActionMoveToWindow(info, tab) {
 	let ids = await menuGetSelection(tab);
 
-	let windowId = SUBMENU_TAB_MOVE_MAP[info.menuItemId];
+	let windowId = DYNAMIC_MAP[info.menuItemId];
 
 	storeArrayRelationData(tab.windowId, ids);
 
@@ -124,6 +160,21 @@ async function menuActionMoveToWindow(info, tab) {
 
 async function createSidebarContext() {
 	SIDEBAR_MENU_PATTERN = browser.runtime.getURL('sidebar.html');
+
+	SUBMENU_MOVE_WINDOW = await dynamicSubmenu(`moveToWindow`, `move`,
+		_ => CACHE.forEachWindow,
+		(windowId, tab) => windowId != tab.windowId,
+		(windowId, tab) => {
+			let numTabs = CACHE.debug().windows[windowId].length;
+			let activeInWindow = CACHE.getActive(windowId);
+			return `Window ${windowId} (${numTabs > 1
+				? `${numTabs} tabs`
+				: ``} active: ${activeInWindow.title})`;
+		},
+		_ => { return {}; },
+		(windowId, tab) => windowId,
+		menuActionMoveToWindow
+	);
 
 	browser.menus.create(menuCreateInfo('reload', i18nSidebarContextMenuReloadTab, async (info, tab) => {
 		(await menuGetSelection(tab)).forEach(id => browser.tabs.reload(id));

@@ -769,7 +769,6 @@ async function init() {
 		}
 
 		if (USE_API) {
-			// todo this should be awaited on
 			browser.runtime.sendMessage({
 				type: MSG_TYPE.UpdateSidebarContextMenu,
 				recipient: -1,
@@ -782,11 +781,10 @@ async function init() {
 				, tabId
 			});
 		} else {
-			BACKGROUND_PAGE.menuUpdate(tabId, Selected.count() > 1).then(_ => {
-				browser.menus.overrideContext({
-					context: 'tab'
-					, tabId
-				});
+			BACKGROUND_PAGE.menuUpdate(tabId, Selected.count() > 1);
+			browser.menus.overrideContext({
+				context: 'tab'
+				, tabId
 			});
 		}
 	});
