@@ -198,7 +198,9 @@ function printTree(src) {
 			}
 			let tab = CACHE.get(child.id);
 
-			str += `pid: ${child.id}, id: ${tab.id} ${tab.title} (${tab.url})\n`;
+			let children = ``;
+			child.childNodes.forEach(child => children += `${child.id},`);
+			str += `pid: ${child.id}, id: ${tab.id}, children: [${children}] ${tab.title} (${tab.url})\n`;
 
 			recurse(child, depth + 1);
 		}

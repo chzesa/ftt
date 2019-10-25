@@ -382,7 +382,6 @@ async function onAttached(tab, info) {
 	let windowId = info.newWindowId;
 	let tree = TREE[windowId];
 	let node;
-
 	record(windowId);
 
 	if (tree == null) {
