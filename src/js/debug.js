@@ -1,5 +1,9 @@
+let CONT = false;
+
 function assert(condition, error) {
 	if (!condition) {
+		CONT = false;
+		printAllTrees();
 		throw new Error(error);
 	}
 }
@@ -260,6 +264,8 @@ async function testSidebarInteraction(count = 100, interval = 250) {
 		console.log(`Debug mode not enabled.`);
 		return;
 	}
+
+	CONT = true;
 	let pendingWindow;
 
 	flip = (perc = 0.5) => Math.random() < perc;
@@ -304,6 +310,8 @@ async function testSidebarInteraction(count = 100, interval = 250) {
 			await pendingWindow;
 			pendingWindow = null;
 		}
+
+		if (!CONT) { break; }
 
 		QUEUE.do(async () => {
 			let srcWindowId = randWindow();
