@@ -424,6 +424,7 @@ function onDetached(tab, info) {
 		fold: CACHE.getValue(tab.id, 'fold')
 	}
 
+	if (DEBUG_MODE) tree.validate();
 	sidebar(windowId, 'onRemoved', tab, info, values);
 }
 
