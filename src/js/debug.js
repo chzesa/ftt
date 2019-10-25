@@ -1,5 +1,7 @@
 function assert(condition, error) {
-	if (!condition) throw new Error(error);
+	if (!condition) {
+		throw new Error(error);
+	}
 }
 
 function tree_debug_mixin(tree) {
@@ -24,23 +26,16 @@ function tree_debug_mixin(tree) {
 		if (node.id == -1)
 			return;
 
-		if (node.parentId == null || node.parent == null)
-			throw new Error(`Node was missing parentId ${nodeparentId} or parent ${node.parent}`)
-
-		if (node.parent.id != node.parentId)
-			throw new Error(`Node ${node.id} had parentId of ${node.parentId}, but parent had id ${node.parent.id}`);
-
-		if (node.parentId == node.id)
-			throw new Error(`Node ${node.id} is parented to ittree`);
+		assert(node.parentId != null && node.parent != null, `Node was missing parentId ${node.parentId} or parent ${node.parent}`);
+		assert(node.parent.id == node.parentId, `Node ${node.id} had parentId of ${node.parentId}, but parent had id ${node.parent.id}`);
+		assert(node.parentId != node.id, `Node ${node.id} is parented to itself`);
 	}
 
 	function parentChildCheck(origin) {
 		for (let i in origin.childNodes) {
 			let node = origin.childNodes[i];
 
-			if (node.parentId != origin.id) {
-				throw new Error(`Parent with ID ${origin.id} is not set as the parent of ${node.id} (parent marked as ${node.parentId} instead).`);
-			}
+			assert(node.parentId == origin.id, `Parent with ID ${origin.id} is not set as the parent of ${node.id} (parent marked as ${node.parentId} instead).`);
 			parentChildCheck(node);
 		}
 	}
@@ -50,16 +45,16 @@ function tree_debug_mixin(tree) {
 			return;
 		}
 		let parentNode = tree.get(node.parentId);
-		if (parentNode == null) throw new Error(`Node ${node.id} has parent ${node.parentId}, but couldn't find this parent node.`);
-		if (!parentNode.childNodes.includes(node)) throw new Error(`Node ${node.id} has parent ${node.parentId}, but ${node.id} wasn't listed as one of the children.`);
+		assert(parentNode != null, `Node ${node.id} has parent ${node.parentId}, but couldn't find this parent node.`);
+		assert(parentNode.childNodes.includes(node), `Node ${node.id} has parent ${node.parentId}, but ${node.id} wasn't listed as one of the children.`)
 	}
 
 	function validateInternalLinearity() {
 		let n = linear.length;
 		for (let i = 0; i < n; i++) {
 			let cur = tree.getIndexed(i);
-			if (cur == null) throw new Error(`Gap in linear index at ${i}`);
-			if (i != cur.index) throw new Error(`Node ${cur.id} at linear index ${i} points to linear index ${cur.index}`);
+			assert(cur != null, `Gap in linear index at ${i}`);
+			assert(i == cur.index, `Node ${cur.id} at linear index ${i} points to linear index ${cur.index}`);
 		}
 	}
 
@@ -133,10 +128,10 @@ function tree_debug_mixin(tree) {
 			let id = tab.id;
 			let index = tree.linearIndex(id);
 			let node = tree.nodeAtLinIn(index);
-			if (i != node.index) throw new Error(`Node of tab ${tab.id} ${tab.url} was at index ${node.index} compared to tab index ${tab.index}`);
-			if (tree.getIndexed(i).id != id) throw new Error(`Expected node ${id} at index ${i}, got ${tree.getIndexed(i).id} instead.`);
-			if (id != node.id) throw new Error(`Index: ${index}. Found node ${node.id}with actual linear index ${tree.linearIndex(node.id)}`);
-			if (index != tab.index) throw new Error(`Tab ${id} ${tab.url} position ${tab.index} doesn't match linear pos ${index} in tree`);
+			assert(i == node.index, `Node of tab ${tab.id} ${tab.url} was at index ${node.index} compared to tab index ${tab.index}`);
+			assert(tree.getIndexed(i).id == id, `Expected node ${id} at index ${i}, got ${tree.getIndexed(i).id} instead.`);
+			assert(id == node.id, `Index: ${index}. Found node ${node.id}with actual linear index ${tree.linearIndex(node.id)}`);
+			assert(index == tab.index, `Tab ${id} ${tab.url} position ${tab.index} doesn't match linear pos ${index} in tree`);
 		}
 	}
 
@@ -167,7 +162,14 @@ function tree_debug_mixin(tree) {
 		validateInternalLinearity();
 		tree.validateLinearity();
 		parentChildCheck(tree.get(-1));
-		if (tree.length() != tree.size()) throw new Error(`Nodes length ${nodes.length()} doesn't match the size ${nodes.size()}`);
+		assert(tree.length() == tree.size(), `Nodes length ${tree.length()} doesn't match the size ${tree.size()}`);
+	}
+}
+
+function printAllTrees() {
+	for (let k in TREE) {
+		console.log(`Tree: ${k}`);
+		printTree(TREE[k]);
 	}
 }
 
