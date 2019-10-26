@@ -1,0 +1,23 @@
+:root
+{
+	--sidebar-background-color: #f9f9fa;
+	--sidebar-color: #0c0c0d;
+
+	--tab-hover-background-color: #d7d7db;
+	--tab-selected-background-color: #45a1ff;
+	--tab-active-background-color: #0a84ff;
+
+	--tab-discarded-color: #737373;
+	--tab-selected-discarded-color: #4a4a4f;
+	--tab-active-color: #f9f9fa;
+
+	--badge-background: #0c0c0d;
+	--badge-text-color: #0c0c0d;
+
+	--fold-indicator-background-color: #b1b1b3;
+	--mute-indicator-background-color: #ff0039;
+
+	--favicon-fill-color: #0c0c0d;
+
+	--drag-indicator-color: #0c0c0d;
+}

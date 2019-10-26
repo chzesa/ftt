@@ -56,7 +56,18 @@ function updateSetting(k, v) {
 async function init() {
 	CONFIG = await browser.storage.local.get();
 
-	let openPos = createRadioMenu(`Child tab open position: `, v => {
+	let theme = createRadioMenu(`Theme:`, v => {
+		updateSetting(`theme`, v);
+	}, true, [
+		{name: `Dark`, value: ThemeOption.Dark},
+		{name: `Light`, value: ThemeOption.Light},
+		{name: `Classic`, value: ThemeOption.Classic},
+		{name: `None`, value: ThemeOption.None}
+	], CONFIG.theme);
+
+	document.body.appendChild(theme);
+
+	let openPos = createRadioMenu(`Child tab open position:`, v => {
 		updateSetting(`descendantOpenPosition`, v);
 	}, true, [
 		{name: `Default`, value: DescendantOpenPosition.Default},

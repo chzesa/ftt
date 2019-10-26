@@ -1,6 +1,30 @@
+:root
+{
+	--sidebar-background-color: #2a2a2e;
+	--sidebar-color: #f9f9fa;
+
+	--tab-hover-background-color: #4a4a4f;
+	--tab-selected-background-color: #0a84ff;
+	--tab-active-background-color: #0060df;
+
+	--tab-discarded-color: #737373;
+	--tab-selected-discarded-color: #4a4a4f;
+	--tab-active-color: #f9f9fa;
+
+	--badge-background: #f9f9fa;
+	--badge-text-color: #f9f9fa;
+
+	--fold-indicator-background-color: #737373;
+	--mute-indicator-background-color: #ff0039;
+
+	--favicon-fill-color: #f9f9fa;
+
+	--drag-indicator-color: #f9f9fa;
+}
+
 body {
-	background-color: #323232;
-	color: #f9f9f9;
+	background-color: var(--sidebar-background-color);
+	color: var(--sidebar-color);
 	overflow-x: hidden;
 }
 .tab {
@@ -10,12 +34,12 @@ body {
 }
 
 .tab:hover {
-	background-color: #484848;
+	background-color: var(--tab-hover-background-color);
 }
 
 .badge {
 	-moz-context-properties: fill;
-	fill: #f9f9f9;
+	fill: var(--badge-background);
 	width: 16px;
 	height: 16px;
 	top: 50%;
@@ -24,7 +48,7 @@ body {
 	margin: 0 5px;
 	border-radius: 4px;
 	display:inline-block;
-	color: #f9f9f9;
+	color: var(--badge-text-color);
 	font-style: normal;
 	pointer-events:none;
 }
@@ -44,12 +68,12 @@ body {
 .fold {
 	margin: 0 0 0 5px;
 	float:left;
-	background-color: grey;
+	background-color: var(--fold-indicator-background-color);
 }
 
 .mute {
 	float:right;
-	background-color: red;
+	background-color: var(--mute-indicator-background-color);
 	width: 14px;
 	height: 14px;
 	border-radius: 7px;
@@ -58,7 +82,7 @@ body {
 
 .favicon {
 	-moz-context-properties: fill;
-	fill: #f9f9f9;
+	fill: var(--favicon-fill-color);
 	width: 16px;
 	height: 16px;
 	float:left;
@@ -82,13 +106,13 @@ body {
 }
 
 .discarded {
-	color:grey;
+	color: var(--tab-discarded-color);
 	font-style: italic;
-}	
+}
 
 .active {
-	background-color: #0a84ff;
-	color:white;
+	background-color: var(--tab-active-background-color);
+	color: var(--tab-active-color);
 }
 
 .tabTitle {
@@ -100,13 +124,16 @@ body {
 }
 
 .selection {
-	background-color: #304FFE;
+	background-color: var(--tab-selected-background-color);
+}
+
+.tab.discarded.selection {
+	color: var(--tab-selected-discarded-color);
 }
 
 .childContainer {
 	padding-left: 15px;
 }
-
 
 .pinned {
 	width: 26px;
@@ -141,7 +168,7 @@ body {
 .dragIndicator {
 	height: 2px;
 	width: 100%;
-	border: white 1px solid;
+	border: var(--drag-indicator-color) 1px solid;
 	position: absolute;
 	will-change: left, top, transform;
 	pointer-events: none;

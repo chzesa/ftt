@@ -28,3 +28,10 @@ const DescendantOpenPosition = {
 	, First: 1
 	, Last: 2
 };
+
+const ThemeOption = {
+	Light: 0
+	, Dark: 1
+	, None: 2
+	, Classic: 3
+}

@@ -861,6 +861,7 @@ async function initConfig() {
 	const defaults = {
 		descendantOpenPosition: DescendantOpenPosition.Last
 		, stayInTreeOnTabClose: true
+		, theme: ThemeOption.Dark
 	};
 
 	CONFIG = await browser.storage.local.get();

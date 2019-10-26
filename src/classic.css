@@ -1,0 +1,23 @@
+:root
+{
+	--sidebar-background-color: #323232;
+	--sidebar-color: #f9f9f9;
+
+	--tab-hover-background-color: #484848;
+	--tab-selected-background-color: #304FFE;
+	--tab-active-background-color: #0a84ff;
+
+	--tab-discarded-color: grey;
+	--tab-selected-discarded-color: grey;
+	--tab-active-color: white;
+
+	--badge-background: #f9f9f9;
+	--badge-text-color: #f9f9f9;
+
+	--fold-indicator-background-color: grey;
+	--mute-indicator-background-color: red;
+
+	--favicon-fill-color: #f9f9f9;
+
+	--drag-indicator-color: black;
+}

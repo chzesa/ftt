@@ -705,14 +705,29 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 }
 
 async function init() {
+	let config = await browser.storage.local.get();
+	DEBUG_MODE = config.debug_mode || false;
+
+	switch(config.theme) {
+		case ThemeOption.Light:
+			appendCSSFile(`light.css`);
+			break;
+		case ThemeOption.Dark:
+			appendCSSFile(`dark.css`);
+			break;
+		case ThemeOption.Classic:
+			appendCSSFile(`classic.css`);
+			break;
+		case ThemeOption.None:
+			document.styleSheets[0].disabled = true;
+			break;
+	}
+
 	let anchor = document.getElementById('anchor');
 	DRAG_INDICATOR = document.getElementById('dragIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	let currentWindow = await browser.windows.getCurrent();
 	WINDOW_ID = currentWindow.id;
-
-	let config = await browser.storage.local.get();
-	DEBUG_MODE = config.debug_mode || false;
 
 	// Create a dummy node so we don't have to treat root level tabs in
 	// a special way.
