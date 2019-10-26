@@ -20,4 +20,11 @@ const MSG_TYPE = {
 	, Signal: 11
 	, GetSelectionSource: 12
 	, SessionsValueUpdated: 13
+	, ConfigUpdate: 14
+};
+
+const DescendantOpenPosition = {
+	Default: 0
+	, First: 1
+	, Last: 2
 };

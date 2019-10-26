@@ -22,12 +22,6 @@ let SELECTION_SOURCE_WINDOW;
 
 let START_TIME;
 
-const DescendantOpenPosition = {
-	default: 0
-	, first: 1
-	, last: 2
-};
-
 function toPid(id) {
 	return ID_TO_PID[id];
 }
@@ -466,7 +460,7 @@ async function onCreated(tab) {
 		let parent = CACHE.get(node.parentId);
 		if (parent != null && !parent.pinned) {
 			switch(CONFIG.descendantOpenPosition) {
-				case DescendantOpenPosition.first:
+				case DescendantOpenPosition.First:
 					if (node.index != parent.index + 1) {
 						storeArrayRelationData(windowId, [id]);
 
@@ -476,7 +470,7 @@ async function onCreated(tab) {
 						});
 					}
 					break;
-				case DescendantOpenPosition.last:
+				case DescendantOpenPosition.Last:
 					let lastChildId = tree.findLastDescendant(node.parentId);
 					if (node.id != lastChildId) {
 						storeArrayRelationData(windowId, [id]);
@@ -855,12 +849,17 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 				value: msg.value
 			});
 			break;
+
+		case MSG_TYPE.ConfigUpdate:
+			CONFIG = await browser.storage.local.get();
+			console.log(CONFIG);
+			break;
 	}
 }
 
 async function initConfig() {
 	const defaults = {
-		descendantOpenPosition: DescendantOpenPosition.last
+		descendantOpenPosition: DescendantOpenPosition.Last
 		, stayInTreeOnTabClose: true
 	};
 
