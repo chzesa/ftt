@@ -95,6 +95,20 @@ body {
 	pointer-events:none;
 }
 
+.attention {
+	background-image: url("./icons/indicator-tab-attention.svg");
+	width: 8px;
+	height: 8px;
+	float:left;
+	top: 50%;
+	transform: translateY(-50%);
+	position: relative;
+	margin-left: 5px;
+	display: inline-block;
+	background-size: contain;
+	pointer-events:none;
+}
+
 @keyframes throbber {
 	from {object-position: 0px 0px;}
 	to {object-position: calc(-960px * calc(16/16)) 0px;}

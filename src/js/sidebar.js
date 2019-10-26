@@ -95,6 +95,10 @@ function tabNew(tab) {
 			class: 'favicon'
 		});
 
+		let attention = new_element(`div`, {
+			class: `attention`
+		});
+
 		let context = new_element('div', {
 			class: 'context'
 		});
@@ -111,7 +115,7 @@ function tabNew(tab) {
 		let node = new_element('div', {
 			class: 'tab'
 			, draggable: 'true'
-		}, [context, faviconSvg, favicon, badgeFold, nodeTitle, badgeMute]);
+		}, [context, faviconSvg, favicon, badgeFold, attention, nodeTitle, badgeMute]);
 
 		let children = new_element('div', {
 			class: 'childContainer'
@@ -160,6 +164,7 @@ function tabNew(tab) {
 		obj.title = nodeTitle;
 		obj.badgeFold = badgeFold;
 		obj.badgeMute = badgeMute;
+		obj.attention = attention;
 		obj.context = context;
 	}
 
@@ -170,6 +175,7 @@ function tabNew(tab) {
 	setNodeClass(obj.badgeFold, 'hidden', true);
 	setNodeClass(obj.node, 'selection', false); // todo
 
+	updateAttention(tab, obj);
 	updateTitle(tab, obj);
 	updateDiscarded(tab, obj);
 	updateMute(tab, obj);
@@ -228,7 +234,7 @@ function tabRelease(id) {
 }
 
 function updateAttention(tab, tabObj) {
-
+	setNodeClass(tabObj.attention, 'hidden', tab.attention !== true);
 }
 
 function updateDiscarded(tab, tabObj) {
