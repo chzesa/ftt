@@ -871,7 +871,7 @@ async function initConfig() {
 		CONFIG.firstInstallVersion = manifest.version;
 	};
 
-	for (let k in defaults) CONFIG[k] === undefined ? defaults[k] : CONFIG[k];
+	for (let k in defaults) CONFIG[k] = CONFIG[k] === undefined ? defaults[k] : CONFIG[k];
 
 	CONFIG.version = manifest.version;
 	await browser.storage.local.set(CONFIG);
