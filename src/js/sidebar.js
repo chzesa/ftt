@@ -213,20 +213,19 @@ function tabRelease(id) {
 	delete TABS[id];
 
 	let children = obj.childContainer.children;
-	let newParent;
-	if (children.length > 0) {
-		newParent = children[0];
-		obj.container.parentNode.insertBefore(newParent, obj.container);
-	}
 
-	if (children.length > 0) {
+	if (children.length > 1) {
 		let frag = document.createDocumentFragment();
+		let heir = children[0];
+		frag.appendChild(heir);
 
 		while (children.length > 0) {
-			frag.appendChild(children[0]);
+			heir.children[1].appendChild(children[0]);
 		}
 
-		newParent.children[1].appendChild(frag);
+		obj.container.parentNode.insertBefore(frag, obj.container);
+	} else if  (children.length == 1) {
+		obj.container.parentNode.insertBefore(children[0], obj.container);
 	}
 
 	HIDDEN_ANCHOR.appendChild(obj.container);
