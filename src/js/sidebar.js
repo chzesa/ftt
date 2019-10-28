@@ -87,11 +87,7 @@ function tabNew(tab) {
 			class: 'tabTitle'
 		});
 
-		let favicon = new_element('div', {
-			class: 'favicon'
-		});
-
-		let faviconSvg = new_element('img', {
+		let favicon = new_element('img', {
 			class: 'favicon'
 		});
 
@@ -115,7 +111,7 @@ function tabNew(tab) {
 		let node = new_element('div', {
 			class: 'tab'
 			, draggable: 'true'
-		}, [context, faviconSvg, favicon, badgeFold, attention, nodeTitle, badgeMute]);
+		}, [context, favicon, badgeFold, attention, nodeTitle, badgeMute]);
 
 		let children = new_element('div', {
 			class: 'childContainer'
@@ -156,7 +152,6 @@ function tabNew(tab) {
 		obj.childContainer = children;
 
 		obj.favicon = favicon;
-		obj.faviconSvg = faviconSvg;
 		obj.title = nodeTitle;
 		obj.badgeFold = badgeFold;
 		obj.badgeMute = badgeMute;
@@ -261,7 +256,6 @@ function updateMute(tab, tabObj) {
 function updateFaviconUrl(tab, tabObj) {
 	if (tab.status == `loading`) return;
 	const chrome = /^chrome:\/\/(.*)/;
-	const isSvg = /\.svg$/;
 
 	let src;
 	if (tab.favIconUrl == null) {
@@ -269,7 +263,6 @@ function updateFaviconUrl(tab, tabObj) {
 			src = './icons/globe.svg';
 		} else {
 			setNodeClass(tabObj.favicon, `hidden`, true);
-			setNodeClass(tabObj.faviconSvg, `hidden`, true);
 			return;
 		}
 	} else if (chrome.test(tab.favIconUrl)) {
@@ -278,15 +271,8 @@ function updateFaviconUrl(tab, tabObj) {
 		src = tab.favIconUrl;
 	}
 
-	if (isSvg.test(src)) {
-		setNodeClass(tabObj.favicon, `hidden`, true);
-		setNodeClass(tabObj.faviconSvg, `hidden`, false);
-		tabObj.faviconSvg.setAttribute(`src`, src);
-	} else {
-		setNodeClass(tabObj.favicon, `hidden`, false);
-		setNodeClass(tabObj.faviconSvg, `hidden`, true);
-		tabObj.favicon.style.backgroundImage = `url(${src})`;
-	}
+	setNodeClass(tabObj.favicon, `hidden`, false);
+	tabObj.favicon.setAttribute(`src`, src);
 }
 
 function updatePinned(tab, tabObj) {
@@ -299,15 +285,14 @@ function updatePinned(tab, tabObj) {
 function updateStatus(tab, tabObj) {
 	if (tab.status == `loading`) {
 		if (!tabObj.favicon.classList.contains('throbber')) {
-			setNodeClass(tabObj.favicon, `hidden`, true);
-			setNodeClass(tabObj.faviconSvg, `hidden`, false);
-			setNodeClass(tabObj.faviconSvg, 'throbber', true);
-			tabObj.faviconSvg.setAttribute(`src`, `./icons/throbber.svg`);
+			setNodeClass(tabObj.favicon, `hidden`, false);
+			setNodeClass(tabObj.favicon, 'throbber', true);
+			tabObj.favicon.setAttribute(`src`, `./icons/throbber.svg`);
 			let delta = Date.now() - START_TIME;
-			tabObj.faviconSvg.style = `animation-delay: -${delta}ms`;
+			tabObj.favicon.style = `animation-delay: -${delta}ms`;
 		}
 	} else {
-		setNodeClass(tabObj.faviconSvg, 'throbber', false);
+		setNodeClass(tabObj.favicon, 'throbber', false);
 		updateFaviconUrl(tab, tabObj);
 	}
 }
