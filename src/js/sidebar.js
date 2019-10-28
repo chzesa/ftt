@@ -16,6 +16,7 @@ let SESSIONS_VALUES;
 
 const TABS = {};
 const TAB_POOL = [];
+const IGNORE = {};
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -60,8 +61,8 @@ function setScrollPosition(focusId) {
 		}
 	}
 
-	let focusTab = TABS[focusId];
-	if (focusTab != null) {
+	if (!ignore(focusId)) {
+		let focusTab = TABS[focusId];
 		showRect(focusTab.node.getBoundingClientRect());
 	}
 
@@ -75,6 +76,7 @@ function setScrollPosition(focusId) {
 function tabNew(tab) {
 	let obj = TABS[tab.id];
 	if (obj != null) {
+		IGNORE[tab.id] = tab.hidden;
 		return obj;
 	}
 
@@ -179,29 +181,19 @@ function tabNew(tab) {
 	return obj;
 }
 
-function tabReleasePartial(ids) {
-	let frag = document.createDocumentFragment();
-	if (Array.isArray(ids)) {
-		ids.forEach(id => {
-			let obj = TABS[id];
-			if (obj == null) return;
-			delete TABS[id];
-			frag.appendChild(obj.container);
-			TAB_POOL.push(obj);
-		});
-	} else {
-		let obj = TABS[ids];
-		if (obj == null) return;
-		delete TABS[ids];
-		frag.appendChild(obj.container);
-		TAB_POOL.push(obj);
-	}
-}
-
 function tabRelease(id) {
 	let obj = TABS[id];
 	if (obj == null) return;
+
+	tabHide(id);
 	delete TABS[id];
+	delete IGNORE[id];
+	TAB_POOL.push(obj);
+}
+
+function tabHide(id) {
+	let obj = TABS[id];
+	if (obj == null) return;
 
 	let children = obj.childContainer.children;
 
@@ -220,7 +212,12 @@ function tabRelease(id) {
 	}
 
 	HIDDEN_ANCHOR.appendChild(obj.container);
-	TAB_POOL.push(obj);
+	IGNORE[id] = true;
+}
+
+function ignore(id) {
+	if (TABS[id] == null) return true;
+	return IGNORE[id] === true;
 }
 
 function updateAttention(tab, tabObj) {
@@ -320,8 +317,8 @@ function onUpdated(tab, info) {
 }
 
 function fold(id) {
+	if (ignore(id)) return;
 	let tabObj = TABS[id];
-	if (tabObj == null) return;
 
 	let node = TREE.get(id);
 	if(node == null || node.childNodes.length == 0) return;
@@ -330,9 +327,8 @@ function fold(id) {
 }
 
 function onFold(id) {
+	if (ignore(id)) return;
 	let tabObj = TABS[id];
-	if (tabObj == null) return;
-
 	let release;
 
 	function recurse(node) {
@@ -347,7 +343,7 @@ function onFold(id) {
 	if (node.childNodes.length == 0) return;
 	release = [];
 	recurse(node);
-	tabReleasePartial(release);
+	release.forEach(tabHide);
 
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
@@ -356,15 +352,15 @@ function onFold(id) {
 }
 
 function unfold(id) {
+	if (ignore(id)) return;
 	let tabObj = TABS[id];
-	if (tabObj == null) return;
 	setValue(id, 'fold', false);
 	if (!USE_API) onUnfold(id);
 }
 
 function onUnfold(id) {
+	if (ignore(id)) return;
 	let tabObj = TABS[id];
-	if (tabObj == null) return;
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
 	displaySubtree(id);
 }
@@ -478,8 +474,10 @@ function displaySubtree(id) {
 			recurse(child, frag);
 		});
 
-		let tabObj = TABS[node.id];
-		if (tabObj != null) tabObj.childContainer.appendChild(frag);
+		if (!ignore(node.id)) {
+			let tabObj = TABS[node.id];
+			tabObj.childContainer.appendChild(frag);
+		}
 	}
 
 	let frag = document.createDocumentFragment();
@@ -502,7 +500,7 @@ function updateHidden(tab, tabObj) {
 	}
 
 	if (tab.hidden) {
-		tabReleasePartial(tab.id);
+		tabHide(tab.id);
 	}
 
 	displaySubtree(tab.id);
