@@ -1,27 +1,3 @@
-:root
-{
-	--sidebar-background-color: #2a2a2e;
-	--sidebar-color: #f9f9fa;
-
-	--tab-hover-background-color: #4a4a4f;
-	--tab-selected-background-color: #0a84ff;
-	--tab-active-background-color: #0060df;
-
-	--tab-discarded-color: #737373;
-	--tab-selected-discarded-color: #4a4a4f;
-	--tab-active-color: #f9f9fa;
-
-	--badge-background: #f9f9fa;
-	--badge-text-color: #f9f9fa;
-
-	--fold-indicator-background-color: #737373;
-	--mute-indicator-background-color: #ff0039;
-
-	--favicon-fill-color: #f9f9fa;
-
-	--drag-indicator-color: #f9f9fa;
-}
-
 body {
 	background-color: var(--sidebar-background-color);
 	color: var(--sidebar-color);
