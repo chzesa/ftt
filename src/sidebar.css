@@ -145,6 +145,14 @@ body {
 	color: var(--tab-selected-discarded-color);
 }
 
+.tab.selection:hover {
+	background-color: var(--tab-selected-hover-background-color);
+}
+
+.tab.active:hover {
+	background-color: var(--tab-active-hover-background-color);
+}
+
 .childContainer {
 	padding-left: 15px;
 }

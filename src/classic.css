@@ -5,7 +5,9 @@
 
 	--tab-hover-background-color: #484848;
 	--tab-selected-background-color: #304FFE;
+	--tab-selected-hover-background-color: #484848;
 	--tab-active-background-color: #0a84ff;
+	--tab-active-hover-background-color: #484848;
 
 	--tab-discarded-color: grey;
 	--tab-selected-discarded-color: grey;
