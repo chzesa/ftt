@@ -56,8 +56,10 @@ function onDragStart(event, id) {
 		BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
 
 	Selected.add(tabId);
-
 	DRAG_INDICATOR.style.display = 'initial';
+
+	TAR_RECT = TABS[id].node.getBoundingClientRect();
+	onDragOver(event, id);
 }
 
 async function onDrop(event, tabId) {
@@ -111,7 +113,6 @@ function onDragEnter(event, node) {
 	TAR_RECT = node.getBoundingClientRect();
 }
 
-	event.preventDefault();
 function onDragOver(event, id) {
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'initial';
