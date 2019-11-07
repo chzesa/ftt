@@ -145,7 +145,9 @@ function tabNew(tab) {
 			onDragEnter(event, node);
 		}, false);
 
-		node.addEventListener('dragover', onDragOver, false);
+		node.addEventListener('dragover', event => {
+			onDragOver(event, obj.id);
+		}, false);
 
 		node.addEventListener('dragend', onDragEnd, false);
 

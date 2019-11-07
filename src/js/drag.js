@@ -111,29 +111,48 @@ function onDragEnter(event, node) {
 	TAR_RECT = node.getBoundingClientRect();
 }
 
-function onDragOver(event) {
 	event.preventDefault();
+function onDragOver(event, id) {
 	event.stopPropagation();
 	DRAG_INDICATOR.style.display = 'initial';
 	DRAG_INDICATOR.style.left = '0px';
 	let scroll = document.documentElement.scrollTop;
 
-	if (event.y < TAR_RECT.top + 7) {
-		DRAG_INDICATOR.style.top = `${TAR_RECT.top - 1 + scroll}px`;
-		DRAG_INDICATOR.style.height = `0px`;
-		DROP_PARENTING = false;
-		DROP_BEFORE = true;
-	}
-	else if (event.y > TAR_RECT.bottom - 7) {
-		DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
-		DRAG_INDICATOR.style.height = `0px`;
-		DROP_PARENTING = false;
-		DROP_BEFORE = false;
-	}
-	else {
+	let tab = CACHE.get(id);
+	if (tab.pinned) {
 		DRAG_INDICATOR.style.height = `${TAR_RECT.height}px`;
+		DRAG_INDICATOR.style.width = `0px`;
 		DRAG_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
-		DROP_PARENTING = true;
+		DROP_PARENTING = false;
+
+		if (event.x < TAR_RECT.left + 7) {
+			DRAG_INDICATOR.style.left = `${TAR_RECT.left - 1 + scroll}px`;
+			DROP_BEFORE = true;
+		} else {
+			DRAG_INDICATOR.style.left = `${TAR_RECT.right - 1 + scroll}px`;
+			DRAG_INDICATOR.style.width = `0px`;
+			DROP_BEFORE = false;
+		}
+	} else {
+		DRAG_INDICATOR.style.width = `100%`;
+
+		if (event.y < TAR_RECT.top + 7) {
+			DRAG_INDICATOR.style.top = `${TAR_RECT.top - 1 + scroll}px`;
+			DRAG_INDICATOR.style.height = `0px`;
+			DROP_PARENTING = false;
+			DROP_BEFORE = true;
+		}
+		else if (event.y > TAR_RECT.bottom - 7) {
+			DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
+			DRAG_INDICATOR.style.height = `0px`;
+			DROP_PARENTING = false;
+			DROP_BEFORE = false;
+		}
+		else {
+			DRAG_INDICATOR.style.height = `${TAR_RECT.height}px`;
+			DRAG_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
+			DROP_PARENTING = true;
+		}
 	}
 }
 
