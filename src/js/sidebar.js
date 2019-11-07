@@ -16,7 +16,7 @@ let SESSIONS_VALUES;
 
 const TABS = {};
 const TAB_POOL = [];
-const IGNORE = {};
+const DISPLAYED = [];
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -61,8 +61,8 @@ function setScrollPosition(focusId) {
 		}
 	}
 
-	if (!ignore(focusId)) {
-		let focusTab = TABS[focusId];
+	let focusTab = DISPLAYED[focusId];
+	if (focusTab != null) {
 		showRect(focusTab.node.getBoundingClientRect());
 	}
 
@@ -76,7 +76,7 @@ function setScrollPosition(focusId) {
 function tabNew(tab) {
 	let obj = TABS[tab.id];
 	if (obj != null) {
-		IGNORE[tab.id] = tab.hidden;
+		DISPLAYED[tab.id] = obj;
 		return obj;
 	}
 
@@ -166,6 +166,7 @@ function tabNew(tab) {
 	obj.id = tab.id;
 	obj.container.setAttribute('tabId', tab.id);
 	TABS[tab.id] = obj;
+	DISPLAYED[tab.id] = obj;
 
 	setNodeClass(obj.badgeFold, 'hidden', true);
 	setNodeClass(obj.node, 'selection', false); // todo
@@ -189,7 +190,7 @@ function tabRelease(id) {
 
 	tabHide(id);
 	delete TABS[id];
-	delete IGNORE[id];
+	delete DISPLAYED[id];
 	TAB_POOL.push(obj);
 }
 
@@ -214,12 +215,7 @@ function tabHide(id) {
 	}
 
 	HIDDEN_ANCHOR.appendChild(obj.container);
-	IGNORE[id] = true;
-}
-
-function ignore(id) {
-	if (TABS[id] == null) return true;
-	return IGNORE[id] === true;
+	DISPLAYED[id] = null;
 }
 
 function updateAttention(tab, tabObj) {
@@ -319,8 +315,8 @@ function onUpdated(tab, info) {
 }
 
 function fold(id) {
-	if (ignore(id)) return;
-	let tabObj = TABS[id];
+	let tabObj = DISPLAYED[id];
+	if (tabObj == null) { return; }
 
 	let node = TREE.get(id);
 	if(node == null || node.childNodes.length == 0) return;
@@ -329,8 +325,8 @@ function fold(id) {
 }
 
 function onFold(id) {
-	if (ignore(id)) return;
-	let tabObj = TABS[id];
+	let tabObj = DISPLAYED[id];
+	if (tabObj == null) { return; }
 	let release;
 
 	function recurse(node) {
@@ -354,15 +350,15 @@ function onFold(id) {
 }
 
 function unfold(id) {
-	if (ignore(id)) return;
-	let tabObj = TABS[id];
+	let tabObj = DISPLAYED[id];
+	if (tabObj == null) { return; }
 	setValue(id, 'fold', false);
 	if (!USE_API) onUnfold(id);
 }
 
 function onUnfold(id) {
-	if (ignore(id)) return;
-	let tabObj = TABS[id];
+	let tabObj = DISPLAYED[id];
+	if (tabObj == null) { return; }
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
 	displaySubtree(id);
 }
@@ -476,8 +472,8 @@ function displaySubtree(id) {
 			recurse(child, frag);
 		});
 
-		if (!ignore(node.id)) {
-			let tabObj = TABS[node.id];
+		let tabObj = DISPLAYED[node.id];
+		if (tabObj != null) {
 			tabObj.childContainer.appendChild(frag);
 		}
 	}
