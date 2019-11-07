@@ -163,7 +163,7 @@ body {
 	border: 1px solid #3D5AFE;
 }
 
-.dragIndicator {
+.dropIndicator {
 	height: 2px;
 	width: 100%;
 	border: var(--drag-indicator-color) 1px solid;

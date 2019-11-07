@@ -1,5 +1,5 @@
 let DROP_PARENTING = false;
-let DRAG_INDICATOR;
+let DROP_INDICATOR;
 let TAR_RECT;
 let DROP_BEFORE;
 
@@ -56,7 +56,7 @@ function onDragStart(event, id) {
 		BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
 
 	Selected.add(tabId);
-	DRAG_INDICATOR.style.display = 'initial';
+	DROP_INDICATOR.style.display = 'initial';
 
 	TAR_RECT = TABS[id].node.getBoundingClientRect();
 	updateDragIndicator(id, event.x, event.y);
@@ -65,7 +65,7 @@ function onDragStart(event, id) {
 async function onDrop(event, tabId) {
 	event.preventDefault();
 	event.stopPropagation();
-	DRAG_INDICATOR.style.display = 'none';
+	DROP_INDICATOR.style.display = 'none';
 
 	let selection;
 	let sourceWindowId;
@@ -121,48 +121,48 @@ function onDragOver(event, id) {
 
 function onDragEnd(event) {
 	event.stopPropagation();
-	DRAG_INDICATOR.style.display = 'none';
+	DROP_INDICATOR.style.display = 'none';
 	broadcast(SIGNAL_TYPE.dragDrop);
 }
 
 function updateDragIndicator(id, x, y) {
-	DRAG_INDICATOR.style.display = 'initial';
-	DRAG_INDICATOR.style.left = '0px';
+	DROP_INDICATOR.style.display = 'initial';
+	DROP_INDICATOR.style.left = '0px';
 	let scroll = document.documentElement.scrollTop;
 
 	let tab = CACHE.get(id);
 	if (tab.pinned) {
-		DRAG_INDICATOR.style.height = `${TAR_RECT.height}px`;
-		DRAG_INDICATOR.style.width = `0px`;
-		DRAG_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
+		DROP_INDICATOR.style.height = `${TAR_RECT.height}px`;
+		DROP_INDICATOR.style.width = `0px`;
+		DROP_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
 		DROP_PARENTING = false;
 
 		if (x < TAR_RECT.left + 7) {
-			DRAG_INDICATOR.style.left = `${TAR_RECT.left - 1 + scroll}px`;
+			DROP_INDICATOR.style.left = `${TAR_RECT.left - 1 + scroll}px`;
 			DROP_BEFORE = true;
 		} else {
-			DRAG_INDICATOR.style.left = `${TAR_RECT.right - 1 + scroll}px`;
-			DRAG_INDICATOR.style.width = `0px`;
+			DROP_INDICATOR.style.left = `${TAR_RECT.right - 1 + scroll}px`;
+			DROP_INDICATOR.style.width = `0px`;
 			DROP_BEFORE = false;
 		}
 	} else {
-		DRAG_INDICATOR.style.width = `100%`;
+		DROP_INDICATOR.style.width = `100%`;
 
 		if (y < TAR_RECT.top + 7) {
-			DRAG_INDICATOR.style.top = `${TAR_RECT.top - 1 + scroll}px`;
-			DRAG_INDICATOR.style.height = `0px`;
+			DROP_INDICATOR.style.top = `${TAR_RECT.top - 1 + scroll}px`;
+			DROP_INDICATOR.style.height = `0px`;
 			DROP_PARENTING = false;
 			DROP_BEFORE = true;
 		}
 		else if (y > TAR_RECT.bottom - 7) {
-			DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
-			DRAG_INDICATOR.style.height = `0px`;
+			DROP_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
+			DROP_INDICATOR.style.height = `0px`;
 			DROP_PARENTING = false;
 			DROP_BEFORE = false;
 		}
 		else {
-			DRAG_INDICATOR.style.height = `${TAR_RECT.height}px`;
-			DRAG_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
+			DROP_INDICATOR.style.height = `${TAR_RECT.height}px`;
+			DROP_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
 			DROP_PARENTING = true;
 		}
 	}

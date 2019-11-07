@@ -580,7 +580,7 @@ function broadcast(signal) {
 function signal(param) {
 	switch(param.type) {
 	case SIGNAL_TYPE.dragDrop:
-		document.getElementById('dragIndicator').style.display = 'none';
+		document.getElementById('dropIndicator').style.display = 'none';
 		break;
 	case SIGNAL_TYPE.selectAll:
 		CACHE.forEach(tab => {
@@ -706,7 +706,7 @@ async function init() {
 	}
 
 	let anchor = document.getElementById('anchor');
-	DRAG_INDICATOR = document.getElementById('dragIndicator');
+	DROP_INDICATOR = document.getElementById('dropIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	let currentWindow = await browser.windows.getCurrent();
 	WINDOW_ID = currentWindow.id;
@@ -734,10 +734,10 @@ async function init() {
 	document.addEventListener('dragover', (event) => {
 		event.preventDefault();
 		let scroll = document.documentElement.scrollTop;
-		DRAG_INDICATOR.style.display = 'initial';
-		DRAG_INDICATOR.style.left = '0px';
-		DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
-		DRAG_INDICATOR.style.height = `0px`;
+		DROP_INDICATOR.style.display = 'initial';
+		DROP_INDICATOR.style.left = '0px';
+		DROP_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
+		DROP_INDICATOR.style.height = `0px`;
 		DROP_PARENTING = false;
 		DROP_BEFORE = true;
 	}, false);
