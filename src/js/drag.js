@@ -59,7 +59,7 @@ function onDragStart(event, id) {
 	DRAG_INDICATOR.style.display = 'initial';
 
 	TAR_RECT = TABS[id].node.getBoundingClientRect();
-	onDragOver(event, id);
+	updateDragIndicator(id, event.x, event.y);
 }
 
 async function onDrop(event, tabId) {
@@ -115,6 +115,17 @@ function onDragEnter(event, node) {
 
 function onDragOver(event, id) {
 	event.stopPropagation();
+	event.preventDefault();
+	updateDragIndicator(id, event.x, event.y);
+}
+
+function onDragEnd(event) {
+	event.stopPropagation();
+	DRAG_INDICATOR.style.display = 'none';
+	broadcast(SIGNAL_TYPE.dragDrop);
+}
+
+function updateDragIndicator(id, x, y) {
 	DRAG_INDICATOR.style.display = 'initial';
 	DRAG_INDICATOR.style.left = '0px';
 	let scroll = document.documentElement.scrollTop;
@@ -126,7 +137,7 @@ function onDragOver(event, id) {
 		DRAG_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;
 		DROP_PARENTING = false;
 
-		if (event.x < TAR_RECT.left + 7) {
+		if (x < TAR_RECT.left + 7) {
 			DRAG_INDICATOR.style.left = `${TAR_RECT.left - 1 + scroll}px`;
 			DROP_BEFORE = true;
 		} else {
@@ -137,13 +148,13 @@ function onDragOver(event, id) {
 	} else {
 		DRAG_INDICATOR.style.width = `100%`;
 
-		if (event.y < TAR_RECT.top + 7) {
+		if (y < TAR_RECT.top + 7) {
 			DRAG_INDICATOR.style.top = `${TAR_RECT.top - 1 + scroll}px`;
 			DRAG_INDICATOR.style.height = `0px`;
 			DROP_PARENTING = false;
 			DROP_BEFORE = true;
 		}
-		else if (event.y > TAR_RECT.bottom - 7) {
+		else if (y > TAR_RECT.bottom - 7) {
 			DRAG_INDICATOR.style.top = `${TAR_RECT.bottom -1 + scroll}px`;
 			DRAG_INDICATOR.style.height = `0px`;
 			DROP_PARENTING = false;
@@ -155,10 +166,4 @@ function onDragOver(event, id) {
 			DROP_PARENTING = true;
 		}
 	}
-}
-
-function onDragEnd(event) {
-	event.stopPropagation();
-	DRAG_INDICATOR.style.display = 'none';
-	broadcast(SIGNAL_TYPE.dragDrop);
 }
