@@ -41,7 +41,8 @@ function setAsNthChild(child, parent, nth = 0) {
 async function appendCSS(pCSS) {
 	let css = document.createElement('style');
 	css.type = 'text/css';
-	css.innerHTML = pCSS;
+	css.innerHTML = '';
+	css.appendChild(document.createTextNode(pCSS));
 	document.body.appendChild(css);
 }
 
