@@ -398,6 +398,9 @@ function unfoldAncestors(id) {
 		node = node.parent;
 		if (getValue(node.id, 'fold')) {
 			setValue(node.id, 'fold', false);
+			if (TABS[node.id] != null) {
+				setNodeClass(TABS[node.id].badgeFold, 'hidden', true);
+			}
 			let tab = CACHE.get(node.id);
 			if (!tab.hidden) {
 				tabNew(tab);
