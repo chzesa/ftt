@@ -4,7 +4,7 @@ const TREE = {};
 const ID_TO_PID = {};
 const PID_TO_ID = {};
 
-const MOVE_CACHE = {};
+let MOVE_CACHE = {};
 const RESTORE_CACHE = {};
 
 const CI_CACHE = {};
@@ -21,6 +21,10 @@ let NEXT_PERSISTENT_ID;
 let SELECTION_SOURCE_WINDOW;
 
 let START_TIME;
+
+let MOVE_EVENT_COUNT = 0;
+let MOVE_CACHE_FLUSH_PENDING = false;
+const CACHE_FLUSH_TIMEOUT = 500;
 
 function toPid(id) {
 	return ID_TO_PID[id];
@@ -164,6 +168,17 @@ function restoreDescendants(windowId, parentId, childPids) {
 	} while(change);
 }
 
+async function tryFlushMoveCache(count) {
+	if (count == MOVE_EVENT_COUNT) {
+		MOVE_CACHE = {};
+		MOVE_CACHE_FLUSH_PENDING = false;
+	} else {
+		setTimeout(() => {
+			QUEUE.do(tryFlushMoveCache, MOVE_EVENT_COUNT);
+		}, CACHE_FLUSH_TIMEOUT);
+	}
+}
+
 async function newWindow(windowId) {
 	let tree = new TreeStructure();
 	tree.windowId = windowId;
@@ -269,6 +284,15 @@ async function onMoved(tab, info) {
 	let tree = TREE[tab.windowId];
 	let cachedData = MOVE_CACHE[id];
 	let node = tree.get(id);
+
+	let thisEvent = MOVE_EVENT_COUNT++;
+
+	if (!MOVE_CACHE_FLUSH_PENDING) {
+		MOVE_CACHE_FLUSH_PENDING = true;
+		setTimeout(() => {
+			QUEUE.do(tryFlushMoveCache, thisEvent);
+		}, CACHE_FLUSH_TIMEOUT);
+	}
 
 	record(windowId);
 
