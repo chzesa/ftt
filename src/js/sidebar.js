@@ -327,24 +327,29 @@ function fold(id) {
 function onFold(id) {
 	let tabObj = DISPLAYED[id];
 	if (tabObj == null) { return; }
-	let release;
+	let count = 0;
 
 	function recurse(node) {
 		node.childNodes.forEach(child => {
 			let tab = CACHE.get(child.id);
-			if (!tab.hidden) release.push(child.id);
+			if (!tab.hidden) {
+				count++;
+				let obj = TABS[tab.id];
+				if (obj != null) {
+					HIDDEN_ANCHOR.appendChild(obj.container);
+					DISPLAYED[tab.id] = null;
+				}
+			}
 			recurse(child);
 		});
 	}
 
 	let node = TREE.get(id);
 	if (node.childNodes.length == 0) return;
-	release = [];
 	recurse(node);
-	release.forEach(tabHide);
 
 	tabObj.badgeFold.innerHTML = '';
-	tabObj.badgeFold.appendChild(document.createTextNode(release.length));
+	tabObj.badgeFold.appendChild(document.createTextNode(count));
 	setNodeClass(tabObj.badgeFold, 'hidden', false);
 	Selected.requireUpdate();
 }
