@@ -306,10 +306,7 @@ async function onMoved(tab, info) {
 	tree.move(id, tab.index);
 
 	if (cachedData == null) {
-		let parentOptions = getParentOptions(tab.windowId, tab.index);
-		let parentId = parentOptions[parentOptions.length -1];
-		tree.changeParent(id, parentId);
-		CACHE.setValue(id, 'parentPid', toPid(parentId));
+		CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 	} else  {
 		restoreAncestor(windowId, id, cachedData.ancestors);
 		restoreDescendants(windowId, id, cachedData.childPids);
