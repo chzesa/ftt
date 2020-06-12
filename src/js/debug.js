@@ -62,6 +62,29 @@ function tree_debug_mixin(tree) {
 		}
 	}
 
+	tree.assertDescendantOrder = node => {
+		if (node.childNodes.length == 0) return;
+		let a = node.childNodes[0].index;
+
+		for (let i = 1; i < node.childNodes.length; i++) {
+			if (node.childNodes[i].index <= a) {
+				throw new Error(`Node ${node.id} had incorrect descendant order`);
+			}
+			a = node.childNodes[i].index;
+		}
+	}
+
+	tree.assertOrder = () => {
+		if (linear.length <= 1) return;
+
+		let a = linear[0].index;
+		for (let i = 1; i < linear.length; i++) {
+			if (linear[i].index <= a)
+				throw new Error(`Tree array not in order`);
+			a = linear[i].index;
+		}
+	}
+
 	tree.linearIndex = function (id) {
 		let indexFound = false;
 		let counter = -1;
@@ -156,17 +179,22 @@ function tree_debug_mixin(tree) {
 			assert(i == idx, `Node ${a.id} was at index ${i}, but was at ${idx} when traversing tree`);
 		}
 
+		validateInternalLinearity();
+		tree.validateLinearity();
+		parentChildCheck(tree.get(-1));
+		assert(tree.length() == tree.size(), `Nodes length ${tree.length()} doesn't match the size ${tree.size()}`);
+
+		for (let i = 0; i < linear.length; i++)
+			tree.assertDescendantOrder(linear[i]);
+
+		tree.assertOrder();
+
 		for (let i = 0; i < linear.length; i++) {
 			let node = linear[i];
 			let id = linear[i].id;
 			let parentId = toId(CACHE.getValue(id, 'parentPid'));
 			assert(parentId === node.parentId, `Node ${node.id} had parent ${node.parentId}, but cache had parent ${parentId}`);
 		}
-
-		validateInternalLinearity();
-		tree.validateLinearity();
-		parentChildCheck(tree.get(-1));
-		assert(tree.length() == tree.size(), `Nodes length ${tree.length()} doesn't match the size ${tree.size()}`);
 	}
 }
 
