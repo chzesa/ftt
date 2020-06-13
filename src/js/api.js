@@ -21,6 +21,7 @@ const MSG_TYPE = {
 	, GetSelectionSource: 12
 	, SessionsValueUpdated: 13
 	, ConfigUpdate: 14
+	, ClearData: 15
 };
 
 const DescendantOpenPosition = {

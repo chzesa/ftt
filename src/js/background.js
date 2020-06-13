@@ -880,6 +880,13 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 			CONFIG = await browser.storage.local.get();
 			console.log(CONFIG);
 			break;
+
+		case MSG_TYPE.ClearData:
+			QUEUE.do(async () => {
+				await RESET_TAB_DATA();
+				browser.runtime.reload();
+			});
+			break;
 	}
 }
 

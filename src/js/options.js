@@ -53,6 +53,12 @@ function updateSetting(k, v) {
 	});
 }
 
+function createButton(value, callback) {
+	let ret = new_element(`input`, { type: `button`, value });
+	ret.addEventListener(`click`, callback);
+	return ret;
+}
+
 async function init() {
 	CONFIG = await browser.storage.local.get();
 
@@ -91,6 +97,13 @@ async function init() {
 	}, CONFIG.debug_mode);
 
 	document.body.appendChild(debugModeToggle);
+
+	let clearDataButton = createButton(`Clear tree data`, v => {
+		if (window.confirm(`Clearing the data will reset all trees.\nContinue?`))
+			browser.runtime.sendMessage({ recipient: -1, type: MSG_TYPE.ClearData });
+	})
+
+	document.body.appendChild(clearDataButton);
 }
 
 document.addEventListener('DOMContentLoaded', init, false);
