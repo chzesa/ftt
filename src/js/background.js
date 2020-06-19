@@ -723,8 +723,6 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 				}
 			});
 
-			if (ids.length == 0) return;
-
 			storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 			ids.forEach(id => MOVE_CACHE[id].ancestors.unshift(toPid(parentId)));
 			if (CACHE.get(ids[0]).index < index) index -= 1;
