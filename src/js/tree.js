@@ -82,37 +82,6 @@ class TreeStructure {
 		return node.id;
 	}
 
-	__binsrch(srch, t) {
-		let a = 0;
-		let b = t.length;
-		if (b == 0) return -1;
-
-		while(a < b) {
-			let k = Math.floor((a + b) / 2);
-			let comp = t[k].index;
-
-			if (comp == srch) return k;
-			if (comp < srch) a = k + 1;
-			else b = k;
-		}
-
-		return a;
-	}
-
-	__binsrchchange(srch, t) {
-		let a = -1;
-		for (let h = t.length; h > 0; h = Math.floor(h / 2))
-			while (a + h < t.length && t[a + h].index < srch)
-				a += h;
-
-		return a + 1;
-	}
-
-	__removeFrom(node, parent) {
-		let i = this.__binsrch(node.index, parent.childNodes);
-		if (i != -1) parent.childNodes.splice(i, 1);
-	}
-
 	move(id, toIndex) {
 		let node = this.map[id];
 		let fromIndex = node.index;
@@ -122,19 +91,21 @@ class TreeStructure {
 			throw new Error(`Cannot move a node with children`);
 		}
 
-		// Remove from parent here to make use of binary search
-		// Nodes would be out of order after index correction otherwise
-		this.__removeFrom(node, node.parent);
-		node.parent = null;
-
 		let displacedIndex = fromIndex < toIndex ? toIndex + 1 : toIndex;
 		let parent;
+		let childIndex;
 
 		if (displacedIndex >= this.array.length) {
 			parent = this.map[-1];
+			childIndex = parent.childNodes.length;
 		} else {
 			let displaced = this.array[displacedIndex];
 			parent = displaced.parent;
+			childIndex = parent.childNodes.indexOf(displaced);
+		}
+
+		if (node.parentId == parent.id && fromIndex < toIndex) {
+			childIndex--;
 		}
 
 		this.array.splice(fromIndex, 1);
@@ -143,10 +114,11 @@ class TreeStructure {
 		let a = Math.min(fromIndex, toIndex);
 		let b = Math.max(fromIndex, toIndex) + 1;
 		b = Math.min(b, this.array.length);
+		for (let i = a; i < b; i++) {
+			this.array[i].index = i;
+		}
 
-		for (let i = a; i < b; i++) this.array[i].index = i;
-
-		this.__changeParent(node, parent);
+		this.__changeParent(node, parent, childIndex);
 	}
 
 	changeParent(id, parentId) {
@@ -154,39 +126,51 @@ class TreeStructure {
 		if (node.parentId == parentId) return;
 		// todo: check if parent is legal
 		let parent = this.map[parentId];
-		this.__changeParent(node, parent);
+
+		// todo: binary search
+		let index = 0;
+		while (index < parent.childNodes.length
+			&& parent.childNodes[index].index < node.index) {
+			index++;
+		}
+
+		this.__changeParent(node, parent, index);
 	}
 
 	new(id) {
 		if (id == null) throw new Error(`Attempt to create a node with null id.`);
 		if (this.map[id] != null) throw new Error(`Node ${id} already exists.`);
 
-		let node = {
-			id
-			, childNodes: []
-			, index: this.array.length
-		};
-
+		let node = {};
+		node.id = id;
+		node.childNodes = [];
+		node.index = this.array.length;
 		this.array.push(node);
 		this.map[id] = node;
 
-		this.__changeParent(node, this.map[-1]);
+		this.__changeParent(node, this.map[-1], -1);
+
 		return node;
 	}
 
-	__changeParent(node, parent) {
-		if (node.parent != null) {
-			let oldIndex = this.__binsrch(node.index, node.parent.childNodes);
-			node.parent.childNodes.splice(oldIndex, 1);
+	__changeParent(node, parent, index) {
+		let oldParent = node.parent;
+
+		if (oldParent != null) {
+			let index = oldParent.childNodes.indexOf(node);
+			oldParent.childNodes.splice(index, 1);
 		}
 
 		node.parentId = parent.id;
 		node.parent = parent;
 		let children = parent.childNodes;
 
-		let index = this.__binsrchchange(node.index, parent.childNodes);
-		if (index < 0 || index >= children.length) children.push(node);
-		else children.splice(index, 0, node);
+		if (index < 0 || index >= children.length) {
+			children.push(node);
+		}
+		else {
+			children.splice(index, 0, node);
+		}
 
 		if (this.recordDeltas) this.deltas.push({
 			id: node.id,
@@ -223,22 +207,22 @@ class TreeStructure {
 		node.childNodes = [];
 
 		let parent = node.parent;
-		let index = this.__binsrch(node.index, parent.childNodes);
+		let index = parent.childNodes.indexOf(node);
 		parent.childNodes.splice(index + 1, 0, firstChild);
 	}
 
 	remove(id) {
 		let node = this.map[id];
 
-		this.promoteFirstChild(node.id);
-		let children = node.parent.childNodes;
-		let indexInParent = this.__binsrch(node.index, node.parent.childNodes);
-		children.splice(indexInParent , 1);
-
 		this.array.splice(node.index, 1);
 		let n = this.array.length;
 		let i = node.index;
 		while (i < n) this.array[i++].index--;
+
+		this.promoteFirstChild(node.id);
+		let children = node.parent.childNodes;
+		let indexInParent = children.indexOf(node);
+		children.splice(indexInParent , 1);
 
 		delete this.map[id];
 	}
