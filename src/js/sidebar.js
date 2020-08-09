@@ -17,6 +17,7 @@ let SESSIONS_VALUES;
 const TABS = {};
 const TAB_POOL = [];
 const DISPLAYED = [];
+const FOLDED_SIZE = {};
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -191,6 +192,7 @@ function tabRelease(id) {
 	tabHide(id);
 	delete TABS[id];
 	delete DISPLAYED[id];
+	delete FOLDED_SIZE[id];
 	TAB_POOL.push(obj);
 }
 
@@ -314,6 +316,20 @@ function onUpdated(tab, info) {
 	}
 }
 
+function incrementFoldCounter(id) {
+	if (FOLDED_SIZE[id] == null) {
+		fold(id);
+		return;
+	}
+
+	let tabObj = DISPLAYED[id];
+	if (tabObj == null) { return; }
+	FOLDED_SIZE[id]++;
+
+	tabObj.badgeFold.innerHTML = '';
+	tabObj.badgeFold.appendChild(document.createTextNode(FOLDED_SIZE[id]));
+}
+
 function fold(id) {
 	let tabObj = DISPLAYED[id];
 	if (tabObj == null) { return; }
@@ -350,6 +366,7 @@ function onFold(id) {
 
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(count));
+	FOLDED_SIZE[id] = count;
 	setNodeClass(tabObj.badgeFold, 'hidden', false);
 	Selected.requireUpdate();
 }
@@ -366,6 +383,7 @@ function onUnfold(id) {
 	if (tabObj == null) { return; }
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
 	displaySubtree(id);
+	delete FOLDED_SIZE[id];
 }
 
 function findVisibleParent(id) {
@@ -500,8 +518,7 @@ function displaySubtree(id) {
 function updateHidden(tab, tabObj) {
 	let foldedParent = inFoldedTree(tab.id);
 	if (foldedParent.result) {
-		// todo
-		fold(foldedParent.id);
+		incrementFoldCounter(foldedParent.id);
 		return;
 	}
 
@@ -543,8 +560,7 @@ function onMoved(id, info) {
 	} else {
 		let foldedParent = inFoldedTree(id);
 		if (foldedParent.result) {
-			// todo increment number
-			fold(foldedParent.id);
+			incrementFoldCounter(foldedParent.id);
 			return;
 		}
 	}
