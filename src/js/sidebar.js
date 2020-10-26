@@ -281,17 +281,11 @@ function updatePinned(tab, tabObj) {
 
 function updateStatus(tab, tabObj) {
 	if (tab.status == `loading`) {
-		if (!tabObj.favicon.classList.contains('throbber')) {
-			setNodeClass(tabObj.favicon, `hidden`, false);
-			setNodeClass(tabObj.favicon, 'throbber', true);
-			tabObj.favicon.setAttribute(`src`, `./icons/throbber.svg`);
-			let delta = Date.now() - START_TIME;
-			tabObj.favicon.style = `animation-delay: -${delta}ms`;
-		}
-	} else {
-		setNodeClass(tabObj.favicon, 'throbber', false);
-		updateFaviconUrl(tab, tabObj);
+		setNodeClass(tabObj.favicon, `hidden`, false);
+		tabObj.favicon.setAttribute(`src`, `./icons/hourglass.svg`);
 	}
+	else
+		updateFaviconUrl(tab, tabObj);
 }
 
 const update_functions = {
