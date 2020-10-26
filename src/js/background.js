@@ -20,8 +20,6 @@ let LAST_CLOSED_INFO = null;
 let NEXT_PERSISTENT_ID;
 let SELECTION_SOURCE_WINDOW;
 
-let START_TIME;
-
 let MOVE_EVENT_COUNT = 0;
 let MOVE_CACHE_FLUSH_PENDING = false;
 const CACHE_FLUSH_TIMEOUT = 500;
@@ -596,7 +594,6 @@ async function registerSidebar(sidebar, windowId) {
 		await sidebar.createTree({
 			cache: CACHE,
 			tree: TREE[windowId],
-			startTime: START_TIME
 		});
 	});
 }
@@ -805,7 +802,6 @@ async function init() {
 
 	await CACHE.forEachWindow(newWindow);
 
-	START_TIME = Date.now();
 	STARTING = false;
 }
 
@@ -832,8 +828,7 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 			resolve({
 				tabs,
 				deltas,
-				values,
-				startTime: START_TIME
+				values
 			});
 
 			break;

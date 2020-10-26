@@ -7,7 +7,6 @@ let CURRENT_ACTIVE_NODE;
 
 let TREE;
 let CACHE;
-let START_TIME;
 
 let USE_API = false;
 let QUEUE;
@@ -632,7 +631,6 @@ async function refresh() {
 async function createTree(data) {
 	CACHE = data.cache;
 	TREE = data.tree;
-	START_TIME = data.startTime;
 	await refresh();
 }
 
@@ -834,7 +832,6 @@ async function init() {
 			windowId: WINDOW_ID
 		});
 
-		START_TIME = msg.startTime;
 		SESSIONS_VALUES = msg.values;
 		msg.deltas.forEach(resolveDelta);
 		for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
