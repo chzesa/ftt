@@ -78,11 +78,14 @@ class TreeStructure {
 		let node = this.map[id];
 
 		let a = node.index - 1;
-		for (let h = this.array.length - node.index; h > 0; h = Math.floor(h / 2))
+		let h = this.array.length * 2;
+		do {
+			h = Math.ceil(h / 2);
 			if (a + h < this.array.length) {
 				let temp = this.jt.lca(id, this.array[a + h].id);
 				if (temp == id) a += h;
 			}
+		} while(h > 1);
 
 		while (node.childNodes.length > 0)
 			node = node.childNodes[node.childNodes.length - 1];
