@@ -110,19 +110,6 @@ function getParentOptions(windowId, index) {
 	return ancestors;
 }
 
-function storeRangeRelationData(windowId, beginIndex, endIndexExcl) {
-	let tree = TREE[windowId];
-	let node;
-	while(beginIndex < endIndexExcl) {
-		node = tree.getIndexed(beginIndex++);
-		MOVE_CACHE[node.id] = {
-			parentPid: toPid(node.parentId),
-			ancestors: tree.ancestorIds(node.id).map(id => toPid(id)),
-			childPids: node.childNodes.map(child => toPid(child.id))
-		}
-	}
-}
-
 function storeArrayRelationData(windowId, array) {
 	let tree = TREE[windowId];
 	array.forEach(id => {
@@ -310,19 +297,10 @@ async function onMoved(tab, info) {
 	record(windowId);
 
 	if (node.childNodes.length > 0) {
-		if (cachedData == null) {
-			storeRangeRelationData(windowId, node.index,
-				tree.get(tree.findLastDescendant(node.id)).index + 1);
-		}
-
-		for (let i = 1; i < node.childNodes.length; i++) {
-			let child = node.childNodes[i];
-			CACHE.setValue(child.id, 'parentPid', toPid(child.parentId));
-		}
-
+		let children = node.childNodes.slice(0);
+		if (cachedData == null) storeArrayRelationData(windowId, tree.subtreeArray(id));
 		tree.promoteFirstChild(id);
-		let child = tree.getIndexed(node.index + 1);
-		CACHE.setValue(child.id, 'parentPid', toPid(child.parentId));
+		children.forEach(child => CACHE.setValue(child.id, 'parentPid', toPid(child.parentId)));
 	}
 
 	tree.move(id, tab.index);
@@ -451,10 +429,7 @@ function onDetached(tab, info) {
 
 	let children = node.childNodes.slice(0);
 
-	if (MOVE_CACHE[id] == null) {
-		let desc = tree.findLastDescendant(node.id);
-		storeRangeRelationData(windowId, node.index, desc.index + 1);
-	}
+	if (MOVE_CACHE[id] == null) storeArrayRelationData(windowId, tree.subtreeArray(id));
 
 	tree.remove(id);
 
@@ -513,7 +488,7 @@ async function onCreated(tab) {
 			switch(CONFIG.descendantOpenPosition) {
 				case DescendantOpenPosition.First:
 					if (node.index != parent.index + 1) {
-						storeRangeRelationData(windowId, tab.index, tab.index + 1);
+						storeArrayRelationData(windowId, [id]);
 
 						browser.tabs.move(id, {
 							index: parent.index + 1,
@@ -524,7 +499,7 @@ async function onCreated(tab) {
 				case DescendantOpenPosition.Last:
 					let lastChildId = tree.findLastDescendant(node.parentId);
 					if (node.id != lastChildId) {
-						storeRangeRelationData(windowId, tab.index, tab.index + 1);
+						storeArrayRelationData(windowId, [id]);
 
 						browser.tabs.move(id, {
 							index: tree.get(lastChildId).index,
