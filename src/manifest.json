@@ -20,6 +20,7 @@
 		"scripts": [
 			"extern/js-syncqueue/src.js"
 			, "extern/we-tabcache/src.js"
+			, "js/jumptable.js"
 			, "js/tree.js"
 			, "js/debug.js"
 			, "js/menu.js"

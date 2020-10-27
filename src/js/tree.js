@@ -10,6 +10,7 @@ class TreeStructure {
 			, index: -1
 		};
 		this.recordDeltas = false;
+		this.jt = new JumpTable();
 	}
 
 	debug() {
@@ -75,9 +76,19 @@ class TreeStructure {
 
 	findLastDescendant(id) {
 		let node = this.map[id];
-		while (node.childNodes.length > 0) {
+
+		let a = node.index - 1;
+		for (let h = this.array.length - node.index; h > 0; h = Math.floor(h / 2))
+			if (a + h < this.array.length) {
+				let temp = this.jt.lca(id, this.array[a + h].id);
+				if (temp == id) a += h;
+			}
+
+		while (node.childNodes.length > 0)
 			node = node.childNodes[node.childNodes.length - 1];
-		}
+
+		if (this.array[a].id != node.id)
+			throw (`Last descendant was ${node.id}, binsrch yield ${this.array[a].id}`);
 
 		return node.id;
 	}
@@ -111,6 +122,10 @@ class TreeStructure {
 	__removeFrom(node, parent) {
 		let i = this.__binsrch(node.index, parent.childNodes);
 		if (i != -1) parent.childNodes.splice(i, 1);
+	}
+
+	buildDepths() {
+		this.array.forEach(n => this.jt.depth(n.id));
 	}
 
 	move(id, toIndex) {
@@ -152,6 +167,10 @@ class TreeStructure {
 	changeParent(id, parentId) {
 		let node = this.map[id];
 		if (node.parentId == parentId) return;
+
+		for (let i = node.index; i < this.map[this.findLastDescendant(id)].index + 1; i++)
+			this.jt.invalidate(this.array[i].id);
+
 		// todo: check if parent is legal
 		let parent = this.map[parentId];
 		this.__changeParent(node, parent);
@@ -170,6 +189,7 @@ class TreeStructure {
 		this.array.push(node);
 		this.map[id] = node;
 
+		this.jt.addNode(id, -1);
 		this.__changeParent(node, this.map[-1]);
 		return node;
 	}
@@ -188,6 +208,8 @@ class TreeStructure {
 		if (index < 0 || index >= children.length) children.push(node);
 		else children.splice(index, 0, node);
 
+		this.jt.setParent(node.id, parent.id);
+
 		if (this.recordDeltas) this.deltas.push({
 			id: node.id,
 			parentId: parent.id,
@@ -201,6 +223,9 @@ class TreeStructure {
 		let children = node.childNodes;
 		let n = children.length;
 		if (n == 0) return;
+
+		for (let i = node.index + 1; i < this.map[this.findLastDescendant(id)].index + 1; i++)
+			this.jt.invalidate(this.array[i].id);
 
 		let firstChild = children[0];
 		firstChild.parentId = node.parentId;
@@ -231,6 +256,7 @@ class TreeStructure {
 		let node = this.map[id];
 
 		this.promoteFirstChild(node.id);
+		this.jt.remove(id);
 		let children = node.parent.childNodes;
 		let indexInParent = this.__binsrch(node.index, node.parent.childNodes);
 		children.splice(indexInParent , 1);
