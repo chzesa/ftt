@@ -206,6 +206,8 @@ class TreeStructure {
 		else children.splice(index, 0, node);
 
 		this.jt.setParent(node.id, parent.id);
+		for (let i = node.index + 1; i < this.map[this.findLastDescendant(node.id)].index + 1; i++)
+			this.jt.invalidate(this.array[i].id);
 
 		if (this.recordDeltas) this.deltas.push({
 			id: node.id,
