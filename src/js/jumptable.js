@@ -58,8 +58,10 @@ class JumpTable {
 
 		for (let i = 0; i < 31; i++) {
 			if (k & 1 << i) {
-				if (n.jt[i] == null)
-					n.jt[i] = this.ancestor(this.ancestor(n.jt[i - 1]), Math.pow(2, i - 1));
+				if (n.jt[i] == null) {
+					let p = Math.pow(2, i - 1);
+					n.jt[i] = this.ancestor(this.ancestor(n.id, p), p);
+				}
 
 				n = this.map[n.jt[i]];
 			}
