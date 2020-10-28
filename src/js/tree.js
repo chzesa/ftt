@@ -87,13 +87,7 @@ class TreeStructure {
 			}
 		} while(h > 1);
 
-		while (node.childNodes.length > 0)
-			node = node.childNodes[node.childNodes.length - 1];
-
-		if (this.array[a].id != node.id)
-			throw (`Last descendant was ${node.id}, binsrch yield ${this.array[a].id}`);
-
-		return node.id;
+		return this.array[a].id;
 	}
 
 	__binsrch(srch, t) {
