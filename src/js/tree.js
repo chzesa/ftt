@@ -231,10 +231,13 @@ class TreeStructure {
 		firstChild.parent = node.parent;
 		let newChildren = firstChild.childNodes;
 
+		this.jt.setParent(firstChild.id, firstChild.parentId);
+
 		for (let i = 1; i < n; i++) {
 			let child = children[i];
 			child.parentId = firstChild.id;
 			child.parent = firstChild;
+			this.jt.setParent(child.id, firstChild.id);
 			newChildren.push(child);
 		}
 
@@ -259,6 +262,8 @@ class TreeStructure {
 		let children = node.parent.childNodes;
 		let indexInParent = this.__binsrch(node.index, node.parent.childNodes);
 		children.splice(indexInParent , 1);
+
+		children.forEach(c => this.jt.setParent(c.id, node.parentId));
 
 		this.array.splice(node.index, 1);
 		let n = this.array.length;
