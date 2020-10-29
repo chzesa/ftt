@@ -165,9 +165,6 @@ class TreeStructure {
 		let node = this.map[id];
 		if (node.parentId == parentId) return;
 
-		for (let i = node.index; i < this.map[this.findLastDescendant(id)].index + 1; i++)
-			this.jt.invalidate(this.array[i].id);
-
 		// todo: check if parent is legal
 		let parent = this.map[parentId];
 		this.__changeParent(node, parent);
