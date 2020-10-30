@@ -725,7 +725,9 @@ async function init() {
 	DROP_INDICATOR = document.getElementById('dropIndicator');
 	HIDDEN_ANCHOR = document.createDocumentFragment();
 	let currentWindow = await browser.windows.getCurrent();
-	WINDOW_ID = currentWindow.id;
+
+	let params = new URLSearchParams(window.location.search);
+	WINDOW_ID = params.get(`windowId`) || currentWindow.id;
 
 	// Create a dummy node so we don't have to treat root level tabs in
 	// a special way.
