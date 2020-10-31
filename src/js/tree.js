@@ -121,10 +121,6 @@ class TreeStructure {
 		if (i != -1) parent.childNodes.splice(i, 1);
 	}
 
-	buildDepths() {
-		this.array.forEach(n => this.jt.depth(n.id));
-	}
-
 	move(id, toIndex) {
 		let node = this.map[id];
 		let fromIndex = node.index;
