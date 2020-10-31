@@ -256,8 +256,6 @@ class TreeStructure {
 		let indexInParent = this.__binsrch(node.index, node.parent.childNodes);
 		children.splice(indexInParent , 1);
 
-		children.forEach(c => this.jt.setParent(c.id, node.parentId));
-
 		this.array.splice(node.index, 1);
 		let n = this.array.length;
 		let i = node.index;
