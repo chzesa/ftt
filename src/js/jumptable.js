@@ -27,7 +27,8 @@ class JumpTable {
 		let nA = this.map[idA];
 		let nB = this.map[idB];
 
-		if(nA == null || nB == null) throw(``);
+		if(nA == null || nB == null)
+			throw new Error(`Couldn't find node ${idA} (${nA}) or ${idB} (${nB}) `)
 
 		if (this.depth(nB.id) < this.depth(nA.id)) {
 			let temp = nA;
