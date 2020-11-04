@@ -91,4 +91,26 @@ class JumpTable {
 	remove(id) {
 		delete this.map[id];
 	}
+
+	clear() {
+		for (let k in Object.keys(this.map))
+			this.invalidate(k);
+	}
+
+	check() {
+		for (let k in Object.keys(this.map)) {
+			let n = this.map[k];
+			if (n == null) {
+				delete this.map[k]
+				continue;
+			}
+			let m = this.map;
+
+			n.jt.forEach(id => {
+				if (m[id] === undefined) {
+					throw new Error(`Found id ${id} in jt of ${n.id} which doesn't exist in map`);
+				}
+			})
+		}
+	}
 }
