@@ -199,7 +199,8 @@ class TreeStructure {
 		else children.splice(index, 0, node);
 
 		this.jt.setParent(node.id, parent.id);
-		for (let i = node.index + 1; i < this.map[this.findLastDescendant(node.id)].index + 1; i++)
+		let h = this.map[this.findLastDescendant(node.id)].index + 1;
+		for (let i = node.index + 1; i < h; i++)
 			this.jt.invalidate(this.array[i].id);
 
 		if (this.recordDeltas) this.deltas.push({
@@ -216,7 +217,8 @@ class TreeStructure {
 		let n = children.length;
 		if (n == 0) return;
 
-		for (let i = node.index + 1; i < this.map[this.findLastDescendant(id)].index + 1; i++)
+		let h = this.map[this.findLastDescendant(id)].index + 1;
+		for (let i = node.index + 1; i < h; i++)
 			this.jt.invalidate(this.array[i].id);
 
 		let firstChild = children[0];
