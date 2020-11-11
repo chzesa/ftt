@@ -110,6 +110,30 @@ function getParentOptions(windowId, index) {
 	return ancestors;
 }
 
+function eligibleParent(windowId, childId, parentId) {
+	let tree = TREE[windowId];
+	let parent = tree.get(parentId);
+	let child = tree.get(childId);
+
+	let res;
+	if (child == null || parent == null || child.index <= parent.index) {
+		res = false;
+	} else {
+		let desc = tree.get(tree.findLastDescendant(parentId));
+
+		if (child.index > desc.index + 1) {
+			res = false;
+		} else {
+			let childDesc = tree.get(tree.findLastDescendant(childId));
+			let next = tree.getIndexed(childDesc.index + 1);
+			res = next == null || tree.depth(next.id) <= tree.depth(parentId) + 1;
+		}
+	}
+
+	assert(getParentOptions(windowId, child.index).includes(parentId) == res, `result for ${childId} -> ${parentId}`);
+	return res;
+}
+
 function storeArrayRelationData(windowId, array) {
 	let tree = TREE[windowId];
 	array.forEach(id => {
@@ -128,11 +152,10 @@ function restoreAncestor(windowId, id, ancestorPids) {
 	let tree = TREE[windowId];
 	let node = tree.get(id);
 	let ancestorId;
-	let parentOptions = getParentOptions(windowId, node.index);
 
 	for (let i = 0; i < ancestorPids.length; i++) {
 		let candidateId = toId(ancestorPids[i]);
-		if (parentOptions.includes(candidateId)) {
+		if (eligibleParent(windowId, id, candidateId)) {
 			ancestorId = candidateId;
 			break;
 		}
@@ -156,8 +179,7 @@ function restoreDescendants(windowId, parentId, childPids) {
 		change = false;
 		// todo: use filter and check for length change of the array
 		childPids.forEach(child => {
-			if (child.parentId != parentId
-				&& getParentOptions(windowId, child.index).includes(parentId)) {
+			if (child.parentId != parentId && eligibleParent(windowId, child.id, parentId)) {
 				tree.changeParent(child.id, parentId);
 				CACHE.setValue(child.id, `parentPid`, pid);
 				change = true;

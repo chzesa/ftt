@@ -58,6 +58,10 @@ class TreeStructure {
 		return ancestors;
 	}
 
+	lca(a, b) { return this.jt.lca(a, b); }
+
+	depth(id) { return this.jt.depth(id); }
+
 	subtreeArray(id) {
 		let root = this.map[id];
 		let ids = [];
