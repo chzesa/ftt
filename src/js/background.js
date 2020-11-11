@@ -265,13 +265,11 @@ async function newWindow(windowId) {
 		tree.move(id, tab.index);
 
 		let parentId = toId(CACHE.getValue(tab.id, 'parentPid'));
-		let parentOptions = getParentOptions(windowId, tab.index);
 
-		if (parentOptions.includes(parentId))  {
+		if (eligibleParent(windowId, id, parentId))
 			tree.changeParent(id, parentId);
-		} else if (parentOptions.includes(tab.openerTabId)) {
+		else if (eligibleParent(windowId, id, tab.openerTabId))
 			tree.changeParent(id, tab.openerTabId);
-		}
 
 		CACHE.setValue(tab.id, 'parentPid', toPid(node.parentId));
 	}, windowId);
@@ -735,7 +733,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 			}
 
 			ids.splice(0, i).forEach(id => {
-				if (getParentOptions(windowId, cmpIndex++).includes(parentId)) {
+				if (eligibleParent(windowId, id, parentId)) {
 					tree.changeParent(id, parentId);
 					CACHE.setValue(id, 'parentPid', toPid(parentId));
 					sidebar(windowId, 'updateChildPositions', parentId);
@@ -766,7 +764,7 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 		}
 
 		if (sameWindow && tab.index == index) {
-			if (getParentOptions(windowId, index).includes(parentId)) {
+			if (eligibleParent(windowId, tabId, parentId)) {
 				tree.changeParent(tabId, parentId);
 				CACHE.setValue(tabId, 'parentPid', toPid(parentId));
 
