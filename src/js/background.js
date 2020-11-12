@@ -89,49 +89,19 @@ function assignPid(id) {
 	return pid;
 }
 
-function getParentOptions(windowId, index) {
-	if (index == 0) return [-1];
-
-	let tree = TREE[windowId];
-	let previous = tree.getIndexed(index - 1);
-
-	let ancestors = tree.ancestorIds(previous.id);
-	ancestors.unshift(previous.id);
-
-	let lastDescendantId = tree.findLastDescendant(tree.getIndexed(index).id);
-	let next = tree.getIndexed(tree.get(lastDescendantId).index + 1);
-
-	if (next != null) {
-		let nextAncestors = tree.ancestorIds(next.id);
-		let n = nextAncestors.length - 1;
-		ancestors = ancestors.splice(0, ancestors.length - n);
-	}
-
-	return ancestors;
-}
-
 function eligibleParent(windowId, childId, parentId) {
 	let tree = TREE[windowId];
 	let parent = tree.get(parentId);
 	let child = tree.get(childId);
 
-	let res;
-	if (child == null || parent == null || child.index <= parent.index) {
-		res = false;
-	} else {
-		let desc = tree.get(tree.findLastDescendant(parentId));
+	if (child == null || parent == null || child.index <= parent.index) return false;
 
-		if (child.index > desc.index + 1) {
-			res = false;
-		} else {
-			let childDesc = tree.get(tree.findLastDescendant(childId));
-			let next = tree.getIndexed(childDesc.index + 1);
-			res = next == null || tree.depth(next.id) <= tree.depth(parentId) + 1;
-		}
-	}
+	let desc = tree.get(tree.findLastDescendant(parentId));
+	if (child.index > desc.index + 1) return false;
 
-	assert(getParentOptions(windowId, child.index).includes(parentId) == res, `result for ${childId} -> ${parentId}`);
-	return res;
+	let childDesc = tree.get(tree.findLastDescendant(childId));
+	let next = tree.getIndexed(childDesc.index + 1);
+	return next == null || tree.depth(next.id) <= tree.depth(parentId) + 1;
 }
 
 function storeArrayRelationData(windowId, array) {
