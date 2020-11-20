@@ -14,7 +14,6 @@ let QUEUE;
 let SESSIONS_VALUES;
 
 const TABS = {};
-const TAB_POOL = [];
 const DISPLAYED = [];
 const FOLDED_SIZE = {};
 
@@ -80,88 +79,84 @@ function tabNew(tab) {
 		return obj;
 	}
 
-	obj = TAB_POOL.pop();
+	obj = {};
 
-	if (obj == null) {
-		obj = {};
+	let nodeTitle = new_element('div', {
+		class: 'tabTitle'
+	});
 
-		let nodeTitle = new_element('div', {
-			class: 'tabTitle'
-		});
+	let favicon = new_element('img', {
+		class: 'favicon'
+	});
 
-		let favicon = new_element('img', {
-			class: 'favicon'
-		});
+	let attention = new_element(`div`, {
+		class: `attention`
+	});
 
-		let attention = new_element(`div`, {
-			class: `attention`
-		});
+	let context = new_element('div', {
+		class: 'context'
+	});
 
-		let context = new_element('div', {
-			class: 'context'
-		});
+	let badgeFold = new_element('div', {
+		class: 'badge fold hidden'
+	});
 
-		let badgeFold = new_element('div', {
-			class: 'badge fold hidden'
-		});
+	let badgeMute = new_element('img', {
+		class: 'badge mute hidden',
+		src: './icons/tab-audio-muted.svg'
+	});
 
-		let badgeMute = new_element('img', {
-			class: 'badge mute hidden',
-			src: './icons/tab-audio-muted.svg'
-		});
+	let node = new_element('div', {
+		class: 'tab'
+		, draggable: 'true'
+	}, [context, favicon, badgeFold, attention, nodeTitle, badgeMute]);
 
-		let node = new_element('div', {
-			class: 'tab'
-			, draggable: 'true'
-		}, [context, favicon, badgeFold, attention, nodeTitle, badgeMute]);
+	let children = new_element('div', {
+		class: 'childContainer'
+	});
 
-		let children = new_element('div', {
-			class: 'childContainer'
-		});
+	let container = new_element('div', {
+		class: 'container'
+	}, [node, children]);
 
-		let container = new_element('div', {
-			class: 'container'
-		}, [node, children]);
+	let lastMouseUp = 0;
 
-		let lastMouseUp = 0;
+	node.addEventListener('mousedown', (event) => {
+		onMouseDown(event, obj.id);
+	}, false);
 
-		node.addEventListener('mousedown', (event) => {
-			onMouseDown(event, obj.id);
-		}, false);
+	node.addEventListener('mouseup', (event) => {
+		lastMouseUp = onMouseUp(event, obj.id, lastMouseUp);
+	}, false);
 
-		node.addEventListener('mouseup', (event) => {
-			lastMouseUp = onMouseUp(event, obj.id, lastMouseUp);
-		}, false);
+	node.addEventListener('dragstart', (event) => {
+		onDragStart(event, obj.id);
+	}, false);
 
-		node.addEventListener('dragstart', (event) => {
-			onDragStart(event, obj.id);
-		}, false);
+	node.addEventListener('drop', (event) => {
+		onDrop(event, obj.id);
+	}, false);
 
-		node.addEventListener('drop', (event) => {
-			onDrop(event, obj.id);
-		}, false);
+	node.addEventListener('dragenter', (event) => {
+		onDragEnter(event, node);
+	}, false);
 
-		node.addEventListener('dragenter', (event) => {
-			onDragEnter(event, node);
-		}, false);
+	node.addEventListener('dragover', event => {
+		onDragOver(event, obj.id);
+	}, false);
 
-		node.addEventListener('dragover', event => {
-			onDragOver(event, obj.id);
-		}, false);
+	node.addEventListener('dragend', onDragEnd, false);
 
-		node.addEventListener('dragend', onDragEnd, false);
+	obj.container = container;
+	obj.node = node;
+	obj.childContainer = children;
 
-		obj.container = container;
-		obj.node = node;
-		obj.childContainer = children;
-
-		obj.favicon = favicon;
-		obj.title = nodeTitle;
-		obj.badgeFold = badgeFold;
-		obj.badgeMute = badgeMute;
-		obj.attention = attention;
-		obj.context = context;
-	}
+	obj.favicon = favicon;
+	obj.title = nodeTitle;
+	obj.badgeFold = badgeFold;
+	obj.badgeMute = badgeMute;
+	obj.attention = attention;
+	obj.context = context;
 
 	obj.id = tab.id;
 	obj.container.setAttribute('tabId', tab.id);
@@ -192,7 +187,6 @@ function tabRelease(id) {
 	delete TABS[id];
 	delete DISPLAYED[id];
 	delete FOLDED_SIZE[id];
-	TAB_POOL.push(obj);
 }
 
 function tabHide(id) {
