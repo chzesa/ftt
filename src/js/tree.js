@@ -260,7 +260,7 @@ class TreeStructure {
 		this.jt.remove(id);
 		let children = node.parent.childNodes;
 		let indexInParent = this.__binsrch(node.index, node.parent.childNodes);
-		children.splice(indexInParent , 1);
+		children.splice(indexInParent, 1);
 
 		this.array.splice(node.index, 1);
 		let n = this.array.length;
