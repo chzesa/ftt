@@ -202,8 +202,8 @@ class TreeStructure {
 		if (index < 0 || index >= children.length) children.push(node);
 		else children.splice(index, 0, node);
 
-		this.jt.setParent(node.id, parent.id);
 		let h = this.map[this.findLastDescendant(node.id)].index + 1;
+		this.jt.setParent(node.id, parent.id);
 		for (let i = node.index + 1; i < h; i++)
 			this.jt.invalidate(this.array[i].id);
 
