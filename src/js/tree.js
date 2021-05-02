@@ -246,7 +246,7 @@ class TreeStructure {
 			index: child.index
 		}));
 
-		node.childNodes = [];
+		node.childNodes.length = 0;
 
 		let parent = node.parent;
 		let index = this.__binsrch(node.index, parent.childNodes);

@@ -17,9 +17,7 @@ class JumpTable {
 
 	invalidate(id) {
 		let n = this.map[id];
-		for (let i = 1; i < n.jt.length; i++) {
-			n.jt[i] = null;
-		}
+		n.jt.length = 1;
 		n.depth = -2;
 	}
 
