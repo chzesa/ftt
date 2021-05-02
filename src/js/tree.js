@@ -63,18 +63,12 @@ class TreeStructure {
 	depth(id) { return this.jt.depth(id); }
 
 	subtreeArray(id) {
-		let root = this.map[id];
 		let ids = [];
-
-		function recurse(node) {
-			ids.push(node.id);
-
-			node.childNodes.forEach(child => {
-				recurse(child);
-			});
+		let h = this.map[this.findLastDescendant(id)].index + 1;
+		for (let i = this.map[id].index; i < h; i++) {
+			ids.push(this.array[i].id);
 		}
 
-		recurse(root);
 		return ids;
 	}
 
