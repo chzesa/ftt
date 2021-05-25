@@ -1,0 +1,104 @@
+{
+	"sidebarContextMenuReloadTab": {
+		"message": "Tabblad he&rladen"
+	}
+
+	, "sidebarContextMenuReloadTabPlural": {
+		"message": "Tabbladen he&rladen"
+	}
+
+	, "sidebarContextMenuMuteTab": {
+		"message": "Tabblad de&mpen"
+	}
+
+	, "sidebarContextMenuMuteTabPlural": {
+		"message": "Tabbladen de&mpen"
+	}
+
+	, "sidebarContextMenuPinTab": {
+		"message": "Tabblad vas&tmaken"
+	}
+
+	, "sidebarContextMenuPinTabPlural": {
+		"message": "Tabbladen vas&tmaken"
+	}
+
+	, "sidebarContextMenuDuplicateTab": {
+		"message": "Tabbla&d klonen"
+	}
+
+	, "sidebarContextMenuDuplicateTabPlural": {
+		"message": "Tabbla&den klonen"
+	}
+
+	, "sidebarContextMenuSelectAllTabs": {
+		"message": "Alle tabbladen &selecteren"
+	}
+
+	, "sidebarContextMenuClearSelection": {
+		"message": "Selectie ong&edaan maken"
+	}
+
+	, "sidebarContextMenuBookmarkTab": {
+		"message": "Tabblad toevoegen aan &bladwijzers"
+	}
+
+	, "sidebarContextMenuBookmarkTabPlural": {
+		"message": "Tabbladen toevoegen aan &bladwijzers"
+	}
+
+	, "sidebarContextMenuMoveTab": {
+		"message": "Tabblad &verplaatsen"
+	}
+	
+	, "sidebarContextMenuMoveTabPlural": {
+		"message": "Tabbladen &verplaatsen"
+	}
+
+	, "sidebarContextMenuUnloadTab": {
+		"message": "Tabblad in slaapsta&nd zetten"
+	}
+
+	, "sidebarContextMenuUnloadTabPlural": {
+		"message": "Tabbladen in slaapsta&nd zetten"
+	}
+
+	, "sidebarContextMenuCloseTab": {
+		"message": "Tabblad sl&uiten"
+	}
+
+	, "sidebarContextMenuCloseTabPlural": {
+		"message": "Tabbladen sl&uiten"
+	}
+
+	, "sidebarContextMenuMoveToStart": {
+		"message": "Verplaat&sen naar begin"
+	}
+
+	, "sidebarContextMenuMoveToEnd": {
+		"message": "Verplaatsen naar &einde"
+	}
+
+	, "sidebarContextMenuMoveToNewWindow": {
+		"message": "Verplaatsen naar nieu&w venster"
+	}
+
+	, "sidebarContextMenuMoveToExistingWindow": {
+		"message": "Venster $WINDOW_ID$ (actief tabblad: $ACTIVE_TAB_TITLE$)"
+		, "placeholders": {
+			"window_id": { "content" : "$1" }
+			, "active_tab_title": { "content": "$2" }
+		}
+		, "description": "Wordt getoond als het venster 1 tabblad heeft"
+	}
+
+	, "sidebarContextMenuMoveToExistingWindowPlural": {
+		"message": "Venster $WINDOW_ID$ ($TAB_COUNT$ tabbladen - actief: $ACTIVE_TAB_TITLE$)"
+		, "placeholders": {
+			"window_id": { "content" : "$1" }
+			, "tab_count": { "content" : "$2" }
+			, "active_tab_title": { "content": "$3" }
+		}
+		, "description": "Wordt getoond als het venster meer dan 1 tabblad heeft"
+	}
+}
