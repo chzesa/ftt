@@ -19,6 +19,8 @@ let i18nSidebarContextMenuCloseTabPlural;
 let i18nSidebarContextMenuMoveToStart;
 let i18nSidebarContextMenuMoveToEnd;
 let i18nSidebarContextMenuMoveToNewWindow;
+let i18nSidebarContextMenuReopenInContainer;
+let i18nSidebarContextMenuReopenInNewContainer;
 
 function getLocalizedStrings() {
 	let lang = browser.i18n.getUILanguage();
@@ -53,4 +55,7 @@ function getLocalizedStrings() {
 	i18nSidebarContextMenuMoveToStart = browser.i18n.getMessage("sidebarContextMenuMoveToStart");
 	i18nSidebarContextMenuMoveToEnd = browser.i18n.getMessage("sidebarContextMenuMoveToEnd");
 	i18nSidebarContextMenuMoveToNewWindow = browser.i18n.getMessage("sidebarContextMenuMoveToNewWindow");
+
+	i18nSidebarContextMenuReopenInContainer = browser.i18n.getMessage("sidebarContextMenuReopenInContainer");
+	i18nSidebarContextMenuReopenInNewContainer = browser.i18n.getMessage("sidebarContextMenuReopenInNewContainer");
 }

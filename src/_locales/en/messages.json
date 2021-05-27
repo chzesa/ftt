@@ -83,6 +83,14 @@
 		"message": "Move to New &Window"
 	}
 
+	, "sidebarContextMenuReopenInContainer": {
+		"message": "Re&open in Container"
+	}
+
+	, "sidebarContextMenuReopenInNewContainer": {
+		"message": "Reopen in New Container"
+	}
+
 	, "sidebarContextMenuMoveToExistingWindow": {
 		"message": "Window $WINDOW_ID$ (active tab: $ACTIVE_TAB_TITLE$)"
 		, "placeholders": {
