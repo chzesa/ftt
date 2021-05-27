@@ -204,9 +204,9 @@ async function createSidebarContext() {
 		(windowId, tab) => {
 			let numTabs = CACHE.debug().windows[windowId].length;
 			let activeInWindow = CACHE.getActive(windowId);
-			return `Window ${windowId} (${numTabs > 1
-				? `${numTabs} tabs`
-				: ``} active: ${activeInWindow.title})`;
+			return numTabs == 1
+				? browser.i18n.getMessage(`sidebarContextMenuMoveToExistingWindow`, [windowId, activeInWindow.title])
+				: browser.i18n.getMessage(`sidebarContextMenuMoveToExistingWindowPlural`, [windowId, numTabs, activeInWindow.title]);
 		},
 		_ => {return {}; },
 		(windowId, tab) => windowId,
