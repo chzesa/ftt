@@ -102,3 +102,63 @@
 		, "description": "Wordt getoond als het venster meer dan 1 tabblad heeft"
 	}
 }
+	, "sidebarContextMenuReopenInContainer": {
+		"message": "Her&openen in container"
+	}
+
+	, "sidebarContextMenuReopenInNewContainer": {
+		"message": "Heropenen in nieuwe container"
+	}
+
+	, "optionsTheme": {
+		"message": "Thema"
+	}
+
+	, "optionsThemeDark": {
+		"message": "Donker"
+	}
+
+	, "optionsThemeLight": {
+		"message": "Licht"
+	}
+
+	, "optionsThemeClassic": {
+		"message": "Klassiek"
+	}
+
+	, "optionsThemeNone": {
+		"message": "Geen"
+	}
+
+	, "optionsChildTabOpenPosition": {
+		"message": "Openingspositie van onderliggend tabblad:"
+	}
+
+	, "optionsChildTabOpenPositionDefault": {
+		"message": "Standaard"
+	}
+
+	, "optionsChildTabOpenPositionFirst": {
+		"message": "Eerst"
+	}
+
+	, "optionsChildTabOpenPositionLast": {
+		"message": "Laatst"
+	}
+
+	, "optionsStayInTreeOnTabClose": {
+		"message": "Boom geopend houden na sluiten van laatste tabblad"
+	}
+
+	, "optionsDebugMode": {
+		"message": "Foutopsporingsmodus"
+	}
+
+	, "optionsClearTreeData": {
+		"message": "Boomgegevens wissen"
+	}
+
+	, "optionsClearTreeDataConfirmationPopup": {
+		"message": "Door de gegevens te wissen, worden allen bomen opnieuw ingesteld.\nWilt u doorgaan?"
+	}
+}
