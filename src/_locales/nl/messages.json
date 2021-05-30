@@ -101,7 +101,7 @@
 		}
 		, "description": "Wordt getoond als het venster meer dan 1 tabblad heeft"
 	}
-}
+	
 	, "sidebarContextMenuReopenInContainer": {
 		"message": "Her&openen in container"
 	}
