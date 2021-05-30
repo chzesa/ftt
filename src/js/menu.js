@@ -204,9 +204,9 @@ async function createSidebarContext() {
 		(windowId, tab) => {
 			let numTabs = CACHE.debug().windows[windowId].length;
 			let activeInWindow = CACHE.getActive(windowId);
-			return `Window ${windowId} (${numTabs > 1
-				? `${numTabs} tabs`
-				: ``} active: ${activeInWindow.title})`;
+			return numTabs == 1
+				? browser.i18n.getMessage(`sidebarContextMenuMoveToExistingWindow`, [windowId, activeInWindow.title])
+				: browser.i18n.getMessage(`sidebarContextMenuMoveToExistingWindowPlural`, [windowId, numTabs, activeInWindow.title]);
 		},
 		_ => {return {}; },
 		(windowId, tab) => windowId,
@@ -303,9 +303,9 @@ async function createSidebarContext() {
 		});
 	}));
 
-	browser.menus.create(menuCreateInfo('reopen', 'Reopen in Container', null));
+	browser.menus.create(menuCreateInfo('reopen', i18nSidebarContextMenuReopenInContainer, null));
 
-	browser.menus.create(menuCreateInfo('reopenInNewContainer', 'Reopen in New Container', async (info, tab) => {
+	browser.menus.create(menuCreateInfo('reopenInNewContainer', i18nSidebarContextMenuReopenInNewContainer, async (info, tab) => {
 		const colors = ['blue', 'turquoise', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'toolbar'];
 		const icons = ['fingerprint', 'briefcase', 'dollar', 'cart', 'circle', 'gift', 'vacation', 'food', 'fruit', 'pet', 'tree', 'chill', 'fence'];
 

@@ -62,35 +62,35 @@ function createButton(value, callback) {
 async function init() {
 	CONFIG = await browser.storage.local.get();
 
-	let theme = createRadioMenu(`Theme:`, v => {
+	let theme = createRadioMenu(browser.i18n.getMessage("optionsTheme"), v => {
 		updateSetting(`theme`, v);
 	}, true, [
-		{name: `Dark`, value: ThemeOption.Dark},
-		{name: `Light`, value: ThemeOption.Light},
-		{name: `Classic`, value: ThemeOption.Classic},
-		{name: `None`, value: ThemeOption.None}
+		{name: browser.i18n.getMessage("optionsThemeDark"), value: ThemeOption.Dark},
+		{name: browser.i18n.getMessage("optionsThemeLight"), value: ThemeOption.Light},
+		{name: browser.i18n.getMessage("optionsThemeClassic"), value: ThemeOption.Classic},
+		{name: browser.i18n.getMessage("optionsThemeNone"), value: ThemeOption.None}
 	], CONFIG.theme);
 
 	document.body.appendChild(theme);
 
-	let openPos = createRadioMenu(`Child tab open position:`, v => {
+	let openPos = createRadioMenu(browser.i18n.getMessage("optionsChildTabOpenPosition"), v => {
 		updateSetting(`descendantOpenPosition`, v);
 	}, true, [
-		{name: `Default`, value: DescendantOpenPosition.Default},
-		{name: `First`, value: DescendantOpenPosition.First},
-		{name: `Last`, value: DescendantOpenPosition.Last}
+		{name: browser.i18n.getMessage("optionsChildTabOpenPositionDefault"), value: DescendantOpenPosition.Default},
+		{name: browser.i18n.getMessage("optionsChildTabOpenPositionFirst"), value: DescendantOpenPosition.First},
+		{name: browser.i18n.getMessage("optionsChildTabOpenPositionLast"), value: DescendantOpenPosition.Last}
 	], CONFIG.descendantOpenPosition);
 
 	document.body.appendChild(openPos);
 
-	let stayInTree = createCheckbox(`Stay in tree on closing last child`,
+	let stayInTree = createCheckbox(browser.i18n.getMessage("optionsStayInTreeOnTabClose"),
 		v => updateSetting(`stayInTreeOnTabClose`, v),
 		CONFIG.stayInTreeOnTabClose
 	);
 
 	document.body.appendChild(stayInTree);
 
-	let debugModeToggle = createCheckbox(`Debug mode`, v => {
+	let debugModeToggle = createCheckbox(browser.i18n.getMessage("optionsDebugMode"), v => {
 		browser.storage.local.set({
 			debug_mode: v
 		}).then(_ => browser.runtime.reload());
@@ -98,8 +98,8 @@ async function init() {
 
 	document.body.appendChild(debugModeToggle);
 
-	let clearDataButton = createButton(`Clear tree data`, v => {
-		if (window.confirm(`Clearing the data will reset all trees.\nContinue?`))
+	let clearDataButton = createButton(browser.i18n.getMessage("optionsClearTreeData"), v => {
+		if (window.confirm(browser.i18n.getMessage("optionsClearTreeDataConfirmationPopup")))
 			browser.runtime.sendMessage({ recipient: -1, type: MSG_TYPE.ClearData });
 	})
 

@@ -101,4 +101,64 @@
 		}
 		, "description": "Displayed when window has more than 1 tab"
 	}
+
+	, "sidebarContextMenuReopenInContainer": {
+		"message": "Re&open in Container"
+	}
+
+	, "sidebarContextMenuReopenInNewContainer": {
+		"message": "Reopen in New Container"
+	}
+
+	, "optionsTheme": {
+		"message": "Theme"
+	}
+
+	, "optionsThemeDark": {
+		"message": "Dark"
+	}
+
+	, "optionsThemeLight": {
+		"message": "Light"
+	}
+
+	, "optionsThemeClassic": {
+		"message": "Classic"
+	}
+
+	, "optionsThemeNone": {
+		"message": "None"
+	}
+
+	, "optionsChildTabOpenPosition": {
+		"message": "Child tab open position:"
+	}
+
+	, "optionsChildTabOpenPositionDefault": {
+		"message": "Default"
+	}
+
+	, "optionsChildTabOpenPositionFirst": {
+		"message": "First"
+	}
+
+	, "optionsChildTabOpenPositionLast": {
+		"message": "Last"
+	}
+
+	, "optionsStayInTreeOnTabClose": {
+		"message": "Stay in tree on closing last child"
+	}
+
+	, "optionsDebugMode": {
+		"message": "Debug mode"
+	}
+
+	, "optionsClearTreeData": {
+		"message": "Clear tree data"
+	}
+
+	, "optionsClearTreeDataConfirmationPopup": {
+		"message": "Clearing the data will reset all trees.\nContinue?"
+	}
 }
