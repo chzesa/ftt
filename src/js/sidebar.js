@@ -14,7 +14,7 @@ let QUEUE;
 let SESSIONS_VALUES;
 
 const TABS = {};
-const DISPLAYED = [];
+const DISPLAYED = {};
 const FOLDED_SIZE = {};
 
 function wait(dur) {
@@ -536,6 +536,7 @@ function onMoved(id, info) {
 	let tab = CACHE.get(id);
 	let nextIndex = info.fromIndex < info.toIndex ? info.fromIndex : info.fromIndex + 1;
 	let nextTab = CACHE.getIndexed(WINDOW_ID, nextIndex)
+	FOLDED_SIZE[id] = 0;
 
 	if (nextTab != null) {
 		displaySubtree(nextTab.id);
@@ -548,6 +549,8 @@ function onMoved(id, info) {
 		let foldedParent = inFoldedTree(id);
 		if (foldedParent.result) {
 			incrementFoldCounter(foldedParent.id);
+			if (DISPLAYED[id] != null)
+				tabHide(id);
 			return;
 		}
 	}
