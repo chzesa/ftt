@@ -1,32 +1,31 @@
 class JumpTable {
 	constructor() {
-		this.map = {};
-		this.map[-1] = {
+		this.map = new Map();
+		this.map.set(-1, {
 			depth: -1,
 			id: -1,
 			jt: [-1]
-		}
+		});
 	}
 
 	depth(id) {
-		let n = this.map[id];
+		let n = this.map.get(id);
 		if (n.depth < -1) n.depth = this.depth(n.jt[0]) + 1;
 
 		return n.depth;
 	}
 
 	invalidate(id) {
-		let n = this.map[id];
+		let n = this.map.get(id);
 		n.jt.length = 1;
 		n.depth = -2;
 	}
 
 	lca(idA, idB) {
-		let nA = this.map[idA];
-		let nB = this.map[idB];
+		let nA = this.map.get(idA);
+		let nB = this.map.get(idB);
 
-		if(nA == null || nB == null)
-			throw new Error(`Couldn't find node ${idA} (${nA}) or ${idB} (${nB}) `)
+		assert(nA != null && nB != null, `Couldn't find node ${idA} (${nA}) or ${idB} (${nB})`);
 
 		if (this.depth(nB.id) < this.depth(nA.id)) {
 			let temp = nA;
@@ -53,7 +52,7 @@ class JumpTable {
 	ancestor(id, k) {
 		if (k == 0) return id;
 
-		let n = this.map[id];
+		let n = this.map.get(id);
 
 		for (let i = 0; i < 31; i++) {
 			if (k & 1 << i) {
@@ -62,7 +61,7 @@ class JumpTable {
 					n.jt[i] = this.ancestor(this.ancestor(n.id, p), p);
 				}
 
-				n = this.map[n.jt[i]];
+				n = this.map.get(n.jt[i]);
 			}
 		}
 
@@ -70,45 +69,41 @@ class JumpTable {
 	}
 
 	__ancestor(id, k) {
-		return this.map[this.ancestor(id, k)];
+		return this.map.get(this.ancestor(id, k));
 	}
 
 	addNode(id, parentId) {
-		this.map[id] = {
+		assert(this.map.get(id) == null, `Created duplicate of existing node ${id}`);
+		this.map.set(id, {
 			depth: -2,
 			id,
 			jt: [parentId]
-		};
+		});
 	}
 
 	setParent(id, parentId) {
 		this.invalidate(id);
-		this.map[id].jt[0] = parentId;
+		this.map.get(id).jt[0] = parentId;
 	}
 
 	remove(id) {
-		delete this.map[id];
+		this.map.delete(id);
 	}
 
 	clear() {
-		for (let k in Object.keys(this.map))
-			this.invalidate(k);
+		let jt = this;
+		this.map.forEach((v, k) => jt.invalidate(k));
 	}
 
 	check() {
-		for (let k in Object.keys(this.map)) {
-			let n = this.map[k];
-			if (n == null) {
-				delete this.map[k]
-				continue;
-			}
-			let m = this.map;
-
-			n.jt.forEach(id => {
-				if (m[id] === undefined) {
-					throw new Error(`Found id ${id} in jt of ${n.id} which doesn't exist in map`);
-				}
+		let m = this.map;
+		let jt = this;
+		this.map.forEach((v, k) => {
+			v.jt.forEach(id => {
+				assert(m.get(id) !== undefined, `Found id ${id} in jt of ${k} which doesn't exist in map`);
+				if (k != -1) assert(jt.depth(k) > jt.depth(id),
+					`Parent depth ${id} higher than descendant depth ${k} (${jt.depth(k)})`);
 			})
-		}
+		});
 	}
 }
