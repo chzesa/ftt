@@ -102,8 +102,7 @@ function tabNew(tab) {
 	});
 
 	let muteIcon = new_element('img', {
-		class: 'mute-icon-container',
-		src: './icons/tab-audio-muted.svg'
+		class: 'mute-icon-container'
 	});
 
 	let badgeMute = new_element('div', {
