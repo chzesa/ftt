@@ -47,13 +47,25 @@ body {
 	background-color: var(--fold-indicator-background-color);
 }
 
-.mute {
-	float:right;
-	background-color: var(--mute-indicator-background-color);
+.mute-icon-container {
 	width: 14px;
 	height: 14px;
-	border-radius: 7px;
-	border: 1px solid black;
+	position: relative;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.mute {
+	float:right;
+	width: 20px;
+	height: 20px;
+	background-color: var(--sidebar-background-color);
+	pointer-events: auto;
+}
+
+.mute:hover {
+	background-color: var(--mute-indicator-background-color);
 }
 
 .favicon {

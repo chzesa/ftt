@@ -101,10 +101,25 @@ function tabNew(tab) {
 		class: 'badge fold hidden'
 	});
 
-	let badgeMute = new_element('img', {
-		class: 'badge mute hidden',
+	let muteIcon = new_element('img', {
+		class: 'mute-icon-container',
 		src: './icons/tab-audio-muted.svg'
 	});
+
+	let badgeMute = new_element('div', {
+		class: 'mute badge hidden'
+	}, [muteIcon])
+
+	badgeMute.addEventListener('mousedown', async (event) => {
+		event.stopPropagation();
+		let t = CACHE.get(obj.id);
+		let newStatus = false;
+		if (t.mutedInfo != null) newStatus = !t.mutedInfo.muted;
+		else if (t.audible) newStatus = true;
+		await browser.tabs.update(obj.id, {muted: newStatus});
+	}, false);
+
+	badgeMute.addEventListener('mouseup', (event) => event.stopPropagation(), false);
 
 	let node = new_element('div', {
 		class: 'tab'
@@ -155,6 +170,7 @@ function tabNew(tab) {
 	obj.title = nodeTitle;
 	obj.badgeFold = badgeFold;
 	obj.badgeMute = badgeMute;
+	obj.muteIcon = muteIcon;
 	obj.attention = attention;
 	obj.context = context;
 
@@ -169,7 +185,7 @@ function tabNew(tab) {
 	updateAttention(tab, obj);
 	updateTitle(tab, obj);
 	updateDiscarded(tab, obj);
-	updateMute(tab, obj);
+	updateAudible(tab, obj);
 	updateContextualIdentity(tab, obj);
 
 	// favicon handled via updateStatus
@@ -239,8 +255,27 @@ function updateTitle(tab, tabObj) {
 	tabObj.title.appendChild(document.createTextNode(title));
 }
 
-function updateMute(tab, tabObj) {
-	setNodeClass(tabObj.badgeMute, 'hidden', tab.mutedInfo == null || tab.mutedInfo.muted == false);
+function updateAudible(tab, tabObj) {
+	let icon = tab.mutedInfo == null || !tab.mutedInfo.muted
+		? './icons/tab-audio-playing.svg'
+		: './icons/tab-audio-muted.svg';
+
+	if (!tab.audible && (tab.mutedInfo == null || !tab.mutedInfo.muted))
+		setNodeClass(tabObj.badgeMute, 'hidden', true);
+	else if (tab.audible) {
+		tabObj.muteIcon.src = icon;
+		setNodeClass(tabObj.badgeMute, 'hidden', false);
+	}
+	else if (tab.mutedInfo != null)
+	{
+		if (!tab.mutedInfo.muted) {
+			setNodeClass(tabObj.badgeMute, 'hidden', true);
+		} else
+		{
+			tabObj.muteIcon.src = icon;
+			setNodeClass(tabObj.badgeMute, 'hidden', false);
+		}
+	}
 }
 
 function updateFaviconUrl(tab, tabObj) {
@@ -283,11 +318,12 @@ function updateStatus(tab, tabObj) {
 
 const update_functions = {
 	attention: updateAttention
+	, audible: updateAudible
 	, discarded: updateDiscarded
 	, title: updateTitle
 	, hidden: updateHidden
 	, favIconUrl: updateFaviconUrl
-	, mutedInfo: updateMute
+	, mutedInfo: updateAudible
 	, pinned: updatePinned
 	, status: updateStatus
 }
