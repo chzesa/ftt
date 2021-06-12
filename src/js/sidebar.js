@@ -250,7 +250,7 @@ function updateFaviconUrl(tab, tabObj) {
 	let src;
 	if (tab.favIconUrl == null) {
 		if (tab.pinned) {
-			src = './icons/globe.svg';
+			src = './icons/defaultFavicon.svg';
 		} else {
 			setNodeClass(tabObj.favicon, `hidden`, true);
 			return;
