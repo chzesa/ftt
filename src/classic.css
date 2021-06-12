@@ -17,7 +17,8 @@
 	--badge-text-color: #f9f9f9;
 
 	--fold-indicator-background-color: grey;
-	--mute-indicator-background-color: red;
+	--mute-indicator-background-color: darkred;
+	--mute-indicator-hover-color: red;
 
 	--favicon-fill-color: #f9f9f9;
 
