@@ -101,7 +101,10 @@ function eligibleParent(windowId, childId, parentId) {
 
 	let childDesc = tree.get(tree.findLastDescendant(childId));
 	let next = tree.getIndexed(childDesc.index + 1);
-	return next == null || tree.depth(next.id) <= tree.depth(parentId) + 1;
+
+	return next == null
+		? child.index == desc.index + 1
+		: tree.depth(next.id) <= tree.depth(parentId) + 1;
 }
 
 function storeArrayRelationData(windowId, array) {
