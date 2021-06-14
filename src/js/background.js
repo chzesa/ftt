@@ -451,18 +451,8 @@ async function onCreated(tab) {
 		node = tree.new(id);
 		tree.move(id, tab.index);
 
-		let parent = node.index == 0 ? null : tree.getIndexed(node.index - 1);
-		while(parent != null) {
-			if (parent.id == parentId) break;
-			parent = parent.parent;
-		}
-
-		if (parent == null) {
-			if (node.index == 0) parentId = -1;
-			else parentId = tree.getIndexed(node.index - 1).parentId;
-		}
-
-		tree.changeParent(id, parentId);
+		if (eligibleParent(windowId, tab.id, parentId))
+			tree.changeParent(id, parentId);
 	}
 
 	CACHE.setValue(tab.id, 'parentPid', toPid(node.parentId));
