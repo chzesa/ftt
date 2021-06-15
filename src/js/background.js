@@ -103,7 +103,7 @@ function eligibleParent(windowId, childId, parentId) {
 	let next = tree.getIndexed(childDesc.index + 1);
 
 	return next == null
-		? child.index == desc.index + 1
+		? child.index == desc.index + 1 || child.index == desc.index
 		: tree.depth(next.id) <= tree.depth(parentId) + 1;
 }
 
