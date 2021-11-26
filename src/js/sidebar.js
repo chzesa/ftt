@@ -720,6 +720,8 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			console.log(`Unrecognized msg ${msg}`);
 			break;
 	}
+
+	resolve()
 }
 
 async function init() {

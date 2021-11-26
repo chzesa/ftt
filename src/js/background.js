@@ -864,6 +864,8 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 			});
 			break;
 	}
+
+	resolve()
 }
 
 async function initConfig() {
