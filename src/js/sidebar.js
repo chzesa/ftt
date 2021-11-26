@@ -582,6 +582,7 @@ function refresh(data) {
 
 	let activeId
 	data.tabs.forEach(({tab, parentId, indexInParent}) => {
+		CACHE[tab.id] = tab
 		let obj = tabNew(tab);
 		if (tab.active)
 			activeId = tab.id
