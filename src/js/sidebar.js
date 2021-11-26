@@ -24,24 +24,17 @@ function wait(dur) {
 }
 
 function getValue(id, key) {
-	if (!USE_API) return CACHE.getValue(id, key);
-
 	let values = SESSIONS_VALUES[id];
 	if (values == undefined) return undefined;
 	return values[key];
 }
 
 function setValue(tabId, key, value) {
-	if (USE_API) {
-		browser.runtime.sendMessage({
-			recipient: -1,
-			type: MSG_TYPE.SessionsValueUpdated,
-			tabId, key, value
-		});
-	}
-	else {
-		CACHE.setValue(tabId, key, value);
-	}
+	browser.runtime.sendMessage({
+		recipient: -1,
+		type: MSG_TYPE.SessionsValueUpdated,
+		tabId, key, value
+	});
 }
 
 function setScrollPosition(focusId) {
@@ -359,7 +352,6 @@ function fold(id) {
 	let node = TREE.get(id);
 	if(node == null || node.childNodes.length == 0) return;
 	setValue(id, 'fold', true);
-	if (!USE_API) onFold(id);
 }
 
 function onFold(id) {
@@ -397,7 +389,6 @@ function unfold(id) {
 	let tabObj = DISPLAYED[id];
 	if (tabObj == null) { return; }
 	setValue(id, 'fold', false);
-	if (!USE_API) onUnfold(id);
 }
 
 function onUnfold(id) {
@@ -620,10 +611,7 @@ function onCreated(tab) {
 }
 
 function broadcast(signal) {
-	if (USE_API)
-		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.Signal, signal});
-	else
-		BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.broadcast, { type: SIGNAL_TYPE.dragDrop });
+	browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.Signal, signal});
 }
 
 function signal(param) {
@@ -815,25 +803,17 @@ async function init() {
 			tabId = Number(container.getAttribute('tabId'));
 		}
 
-		if (USE_API) {
-			browser.runtime.sendMessage({
-				type: MSG_TYPE.UpdateSidebarContextMenu,
-				recipient: -1,
-				tabId,
-				plural: Selected.count() > 1
-			});
+		browser.runtime.sendMessage({
+			type: MSG_TYPE.UpdateSidebarContextMenu,
+			recipient: -1,
+			tabId,
+			plural: Selected.count() > 1
+		});
 
-			browser.menus.overrideContext({
-				context: 'tab'
-				, tabId
-			});
-		} else {
-			BACKGROUND_PAGE.menuUpdate(tabId, Selected.count() > 1);
-			browser.menus.overrideContext({
-				context: 'tab'
-				, tabId
-			});
-		}
+		browser.menus.overrideContext({
+			context: 'tab'
+			, tabId
+		});
 	});
 
 	document.addEventListener('mousedown', async function (event) {
@@ -849,56 +829,26 @@ async function init() {
 		}
 	});
 
-	if (currentWindow.incognito) {
-		USE_API = true;
-		TREE = new TreeStructure();
-		QUEUE = newSyncQueue({enabled: false});
-		CACHE = newCache();
+	TREE = new TreeStructure();
+	QUEUE = newSyncQueue({enabled: false});
+	CACHE = newCache();
 
-		QUEUE.do(refresh);
+	QUEUE.do(refresh);
 
-		browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
-			new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
+	browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
+		new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
 
-		let msg = await browser.runtime.sendMessage({
-			type: MSG_TYPE.Register,
-			recipient: -1,
-			windowId: WINDOW_ID
-		});
+	let msg = await browser.runtime.sendMessage({
+		type: MSG_TYPE.Register,
+		recipient: -1,
+		windowId: WINDOW_ID
+	});
 
-		SESSIONS_VALUES = msg.values;
-		msg.deltas.forEach(resolveDelta);
-		for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
+	SESSIONS_VALUES = msg.values;
+	msg.deltas.forEach(resolveDelta);
+	for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
 
-		QUEUE.enable();
-		return;
-	}
-
-	while(true) {
-		let pages = await browser.extension.getViews();
-		pages.forEach(p => {
-			if (p.registerSidebar != null) BACKGROUND_PAGE = p;
-		});
-		if (BACKGROUND_PAGE != null) break;
-		await wait(50);
-	}
-
-	BACKGROUND_PAGE.registerSidebar({
-		createTree
-		, updateChildPositions: displaySubtree
-		, refresh
-		, signal
-		, getSelection: () => {
-			let ret = Selected.get();
-			Selected.clear();
-			return ret;
-		}
-		, onCreated
-		, onRemoved
-		, onUpdated
-		, onActivated
-		, onMoved
-	}, WINDOW_ID);
+	QUEUE.enable();
 }
 
 document.addEventListener('DOMContentLoaded', init, false);
