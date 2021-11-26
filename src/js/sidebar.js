@@ -455,6 +455,7 @@ function updateHidden(tab, tabObj) {
 		tabShow(tab.id)
 		setScrollPosition(tab.id);
 	}
+	Selected.requireUpdate();
 }
 
 function onActivated(id) {
@@ -493,6 +494,7 @@ function onMoved(tab, parentId, indexInParent) {
 
 function onRemoved(tab, info, values) {
 	tabClose(tab.id);
+	Selected.requireUpdate();
 }
 
 function onCreated(tab, parentId, indexInParent) {
