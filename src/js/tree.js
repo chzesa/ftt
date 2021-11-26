@@ -119,6 +119,12 @@ class TreeStructure {
 		if (i != -1) parent.childNodes.splice(i, 1);
 	}
 
+	indexInParent(id) {
+		let node = this.map[id];
+		let parent = node.parent
+		return this.__binsrchchange(node.index, parent.childNodes);
+	}
+
 	move(id, toIndex) {
 		let node = this.map[id];
 		let fromIndex = node.index;

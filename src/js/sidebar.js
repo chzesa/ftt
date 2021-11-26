@@ -1,12 +1,6 @@
 let DEBUG_MODE;
-let BACKGROUND_PAGE;
 let WINDOW_ID;
-let HIDDEN_ANCHOR;
-
 let CURRENT_ACTIVE_NODE;
-
-let TREE;
-let CACHE;
 
 let USE_API = false;
 let QUEUE;
@@ -16,6 +10,8 @@ let SESSIONS_VALUES;
 const TABS = {};
 const DISPLAYED = {};
 const FOLDED_SIZE = {};
+const INDENT_SIZE = 15
+const CACHE = []
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -53,12 +49,12 @@ function setScrollPosition(focusId) {
 		}
 	}
 
-	let focusTab = DISPLAYED[focusId];
+	let focusTab = TABS[focusId];
 	if (focusTab != null) {
 		showRect(focusTab.node.getBoundingClientRect());
 	}
 
-	showRect(TABS[CACHE.getActive(WINDOW_ID).id].node.getBoundingClientRect());
+	showRect(CURRENT_ACTIVE_NODE.node.getBoundingClientRect());
 
 	if (delta != 0) {
 		document.documentElement.scrollTop += delta;
@@ -68,7 +64,6 @@ function setScrollPosition(focusId) {
 function tabNew(tab) {
 	let obj = TABS[tab.id];
 	if (obj != null) {
-		DISPLAYED[tab.id] = obj;
 		return obj;
 	}
 
@@ -104,11 +99,11 @@ function tabNew(tab) {
 
 	badgeMute.addEventListener('mousedown', async (event) => {
 		event.stopPropagation();
-		let t = CACHE.get(obj.id);
+		let t = CACHE[obj.id];
 		let newStatus = false;
 		if (t.mutedInfo != null) newStatus = !t.mutedInfo.muted;
 		else if (t.audible) newStatus = true;
-		await browser.tabs.update(obj.id, {muted: newStatus});
+		browser.tabs.update(obj.id, {muted: newStatus});
 	}, false);
 
 	badgeMute.addEventListener('mouseup', (event) => event.stopPropagation(), false);
@@ -169,7 +164,8 @@ function tabNew(tab) {
 	obj.id = tab.id;
 	obj.container.setAttribute('tabId', tab.id);
 	TABS[tab.id] = obj;
-	DISPLAYED[tab.id] = obj;
+	DISPLAYED[tab.id] = !tab.hidden;
+	FOLDED_SIZE[tab.id] = 0
 
 	setNodeClass(obj.badgeFold, 'hidden', true);
 	setNodeClass(obj.node, 'selection', false); // todo
@@ -184,25 +180,18 @@ function tabNew(tab) {
 	setNodeClass(obj.node, 'pinned', tab.pinned);
 	updateStatus(tab, obj);
 
+	if (tab.hidden)
+		tabHide(tab.id)
+
+	if (tab.id !== -1 && getValue(tab.id, 'fold'))
+		onFold(tab.id)
+
 	return obj;
 }
 
-function tabRelease(id) {
+function tabClose(id) {
 	let obj = TABS[id];
-	if (obj == null) return;
-
-	tabHide(id);
-	delete TABS[id];
-	delete DISPLAYED[id];
-	delete FOLDED_SIZE[id];
-}
-
-function tabHide(id) {
-	let obj = TABS[id];
-	if (obj == null) return;
-
 	let children = obj.childContainer.children;
-
 	if (children.length > 1) {
 		let frag = document.createDocumentFragment();
 		let heir = children[0];
@@ -217,8 +206,25 @@ function tabHide(id) {
 		obj.container.parentNode.insertBefore(children[0], obj.container);
 	}
 
-	HIDDEN_ANCHOR.appendChild(obj.container);
-	DISPLAYED[id] = null;
+	obj.container.remove()
+}
+
+function tabShow(id) {
+	DISPLAYED[id] = true
+	let tabObj = TABS[id];
+	tabObj.node.classList.remove('hidden')
+	tabObj.childContainer.style.paddingLeft = `${INDENT_SIZE}px`
+	setNodeClass(tabObj.childContainer, 'hidden', getValue(id, 'fold'))
+	updateFoldCounter(id)
+}
+
+function tabHide(id) {
+	DISPLAYED[id] = false
+	let tabObj = TABS[id];
+	tabObj.node.classList.add('hidden')
+	tabObj.childContainer.style.paddingLeft = 0
+
+	tabObj.childContainer.classList.remove('hidden')
 }
 
 function updateAttention(tab, tabObj) {
@@ -322,7 +328,6 @@ const update_functions = {
 
 function onUpdated(tab, info) {
 	let tabObj = TABS[tab.id];
-	if (tabObj == null && info.hidden === undefined) return;
 
 	for (let key in info) {
 		let fn = update_functions[key];
@@ -331,92 +336,90 @@ function onUpdated(tab, info) {
 	}
 }
 
-function incrementFoldCounter(id) {
-	if (FOLDED_SIZE[id] == null) {
-		fold(id);
-		return;
-	}
-
-	let tabObj = DISPLAYED[id];
-	if (tabObj == null) { return; }
-	FOLDED_SIZE[id]++;
-
-	tabObj.badgeFold.innerHTML = '';
-	tabObj.badgeFold.appendChild(document.createTextNode(FOLDED_SIZE[id]));
+function isPinned(id) {
+	return TABS[id].node.classList.contains('pinned')
 }
 
-function fold(id) {
-	let tabObj = DISPLAYED[id];
-	if (tabObj == null) { return; }
+function updateFoldCounter(id) {
+	if (!getValue(id, 'fold'))
+		return
 
-	let node = TREE.get(id);
-	if(node == null || node.childNodes.length == 0) return;
-	setValue(id, 'fold', true);
-}
-
-function onFold(id) {
-	let tabObj = DISPLAYED[id];
-	if (tabObj == null) { return; }
+	let tabObj = TABS[id];
 	let count = 0;
 
 	function recurse(node) {
-		node.childNodes.forEach(child => {
-			let tab = CACHE.get(child.id);
-			if (!tab.hidden) {
-				count++;
-				let obj = TABS[tab.id];
-				if (obj != null) {
-					HIDDEN_ANCHOR.appendChild(obj.container);
-					DISPLAYED[tab.id] = null;
-				}
-			}
-			recurse(child);
-		});
+		node = TABS[getId(node)]
+		for (let i = 0; i < node.childContainer.children.length; i++) {
+			let child = node.childContainer.children[i]
+			if (DISPLAYED[getId(child)])
+				count++
+			recurse(child)
+		}
 	}
 
-	let node = TREE.get(id);
-	if (node.childNodes.length == 0) return;
-	recurse(node);
+	recurse(tabObj.container);
 
 	tabObj.badgeFold.innerHTML = '';
 	tabObj.badgeFold.appendChild(document.createTextNode(count));
 	FOLDED_SIZE[id] = count;
-	setNodeClass(tabObj.badgeFold, 'hidden', false);
+	setNodeClass(tabObj.badgeFold, 'hidden', count == 0);
+}
+
+function incrementFoldCounter(id, by = 1) {
+	let tabObj = TABS[id];
+	FOLDED_SIZE[id] += by;
+
+	tabObj.badgeFold.innerHTML = '';
+	tabObj.badgeFold.appendChild(document.createTextNode(FOLDED_SIZE[id]));
+	setNodeClass(tabObj.badgeFold, 'hidden', FOLDED_SIZE[id] == 0);
+}
+
+function fold(id) {
+	if (id != -1 && !getValue(id, 'fold'))
+		setValue(id, 'fold', true);
+}
+
+function onFold(id) {
+	let tabObj = TABS[id];
+	setNodeClass(tabObj.childContainer, 'hidden', true)
+	updateFoldCounter(id)
 	Selected.requireUpdate();
 }
 
 function unfold(id) {
-	let tabObj = DISPLAYED[id];
-	if (tabObj == null) { return; }
-	setValue(id, 'fold', false);
+	if (getValue(id, 'fold'))
+		setValue(id, 'fold', false);
 }
 
 function onUnfold(id) {
-	let tabObj = DISPLAYED[id];
-	if (tabObj == null) { return; }
+	let tabObj = TABS[id];
 	setNodeClass(tabObj.badgeFold, 'hidden', true);
-	displaySubtree(id);
-	delete FOLDED_SIZE[id];
+	setNodeClass(tabObj.childContainer, 'hidden', false)
+
+	Selected.requireUpdate();
 }
 
 function findVisibleParent(id) {
-	let node = TREE.get(id);
-	do {
-		node = node.parent;
-	} while (node.id != -1 && CACHE.get(node.id).hidden);
+	let node = TABS[id].container
 
-	return node.id;
+	do {
+		node = node.parentNode.parentNode;
+		id = getId(node)
+	} while (id != -1 && !DISPLAYED[id]);
+
+	return id;
 }
 
-function inFoldedTree(tabId) {
-	let node = TREE.get(tabId);
+function inFoldedTree(id) {
+	let node = TABS[id].container;
 
-	while (node.parentId != -1) {
-		node = node.parent;
-		if (CACHE.get(node.id).hidden == false && getValue(node.id, 'fold')) {
+	while (getId(node) != -1) {
+		node = node.parentNode.parentNode;
+		id = getId(node)
+		if (DISPLAYED[id] && getValue(id, 'fold')) {
 			return {
 				result: true,
-				id: node.id
+				id
 			};
 		}
 	}
@@ -427,187 +430,80 @@ function inFoldedTree(tabId) {
 }
 
 function unfoldAncestors(id) {
-	let node = TREE.get(id);
-	let lastFoldedId;
+	let node = TABS[id].container;
 
-	while (node.parentId != -1) {
-		node = node.parent;
-		if (getValue(node.id, 'fold')) {
-			setValue(node.id, 'fold', false);
-			if (TABS[node.id] != null) {
-				setNodeClass(TABS[node.id].badgeFold, 'hidden', true);
-			}
-			let tab = CACHE.get(node.id);
-			if (!tab.hidden) {
-				tabNew(tab);
-				lastFoldedId = node.id;
-			}
-		}
-	}
-
-	if (lastFoldedId != null) {
-		unfold(lastFoldedId);
-		return true;
-	}
-
-	return false;
-}
-
-function insertChild(id, parentId, container = null) {
-	let index = CACHE.get(id).index;
-	let childContainer = TABS[parentId].childContainer;
-
-	if (container == null) container = TABS[id].container;
-
-	if (container.parentNode == childContainer) {
-		HIDDEN_ANCHOR.appendChild(container);
-	}
-
-	let insertAt = -1;
-	let array = childContainer.children;
-	let a = 0;
-	let b = array.length - 1;
-
-	while (a <= b) {
-		let k = Math.floor((a + b) / 2);
-
-		let childId = Number(array[k].getAttribute('tabId'));
-
-		if (CACHE.get(childId).index <= index) {
-			a = k + 1;
-		} else {
-			insertAt = k;
-			b = k - 1;
-		}
-	}
-
-	try {
-		setAsNthChild(container, childContainer, insertAt);
-	} catch(e) {
-		console.log(e);
-		location.reload();
+	while (getId(node) != -1) {
+		node = node.parentNode.parentNode;
+		id = getId(node)
+		unfold(id)
 	}
 }
 
-function displaySubtree(id) {
-	let root = TREE.get(id);
-	function recurse(node, frag) {
-		let tab = CACHE.get(node.id);
-
-		if (tab != null && !tab.hidden){
-			frag.appendChild( tabNew(tab).container );
-
-			if (getValue(tab.id, 'fold')) {
-				fold(tab.id);
-				return;
-			}
-
-			if (node.childNodes.length == 0) return;
-
-			frag = document.createDocumentFragment();
-		}
-
-		node.childNodes.forEach(child => {
-			recurse(child, frag);
-		});
-
-		let tabObj = DISPLAYED[node.id];
-		if (tabObj != null) {
-			tabObj.childContainer.appendChild(frag);
-		}
-	}
-
-	let frag = document.createDocumentFragment();
-	recurse(root, frag);
-
-	if (id != -1) {
-		let parentId = findVisibleParent(id);
-		insertChild(id, parentId, frag);
-	}
-
-	Selected.requireUpdate();
+function getId(htmlNode) {
+	return Number(htmlNode.getAttribute('tabId'))
 }
 
 function updateHidden(tab, tabObj) {
 	let foldedParent = inFoldedTree(tab.id);
 	if (foldedParent.result) {
-		incrementFoldCounter(foldedParent.id);
-		return;
+		incrementFoldCounter(foldedParent.id, tab.hidden ? -1 : 1);
 	}
 
 	if (tab.hidden) {
 		tabHide(tab.id);
-	}
-
-	displaySubtree(tab.id);
-	setScrollPosition(tab.id);
-}
-
-function onActivated(tabId) {
-	unfoldAncestors(tabId);
-
-	let newActiveNode = TABS[tabId];
-	newActiveNode = newActiveNode.node;
-
-	if (CURRENT_ACTIVE_NODE != null)
-	setNodeClass(CURRENT_ACTIVE_NODE, 'active', false);
-
-	CURRENT_ACTIVE_NODE = newActiveNode;
-	setNodeClass(CURRENT_ACTIVE_NODE, 'active', true);
-
-	setScrollPosition(tabId);
-}
-
-function onMoved(id, info) {
-	let tab = CACHE.get(id);
-	let nextIndex = info.fromIndex < info.toIndex ? info.fromIndex : info.fromIndex + 1;
-	let nextTab = CACHE.getIndexed(WINDOW_ID, nextIndex)
-	FOLDED_SIZE[id] = 0;
-
-	if (nextTab != null) {
-		displaySubtree(nextTab.id);
-	}
-
-	if (tab.hidden) return;
-	if (CACHE.getActive(WINDOW_ID).id == id && unfoldAncestors(id)) {
-		return;
 	} else {
-		let foldedParent = inFoldedTree(id);
-		if (foldedParent.result) {
-			incrementFoldCounter(foldedParent.id);
-			if (DISPLAYED[id] != null)
-				tabHide(id);
-			return;
-		}
+		tabShow(tab.id)
+		setScrollPosition(tab.id);
 	}
+}
 
-	displaySubtree(tab.id);
+function onActivated(id) {
+	unfoldAncestors(id);
+	if (CURRENT_ACTIVE_NODE != null)
+	setNodeClass(CURRENT_ACTIVE_NODE.node, 'active', false);
+
+	CURRENT_ACTIVE_NODE = TABS[id];
+	setNodeClass(CURRENT_ACTIVE_NODE.node, 'active', true);
 	setScrollPosition(id);
 }
 
-function onRemoved(tab, info, values) {
-	let tabObj = TABS[tab.id];
-	tabRelease(tab.id);
-	Selected.requireUpdate();
+function onMoved(tab, parentId, indexInParent) {
+	let id = tab.id
 
-	if (tab.hidden || values.fold != true || tabObj == null) return;
+	if (!tab.hidden) {
+		let foldedParent = inFoldedTree(id);
+		if (foldedParent.result)
+			incrementFoldCounter(foldedParent.id, -1);
+	}
 
-	let next = CACHE.getIndexed(info.oldWindowId || tab.windowId, info.oldIndex || tab.index);
-	if (next != null) {
-		displaySubtree(next.id);
+	setAsNthChild(TABS[id].container, TABS[parentId].childContainer, indexInParent)
+
+	if (tab.active)
+		unfoldAncestors(id)
+
+	if (!tab.hidden) {
+		let foldedParent = inFoldedTree(id);
+		if (foldedParent.result)
+			incrementFoldCounter(foldedParent.id);
+
+		setScrollPosition(id);
 	}
 }
 
-function onCreated(tab) {
-	let o = tabNew(tab);
-	if (tab.hidden) return;
-	let id = tab.id;
-	if (!unfoldAncestors(id)) {
-		displaySubtree(id);
-	}
+function onRemoved(tab, info, values) {
+	tabClose(tab.id);
+}
 
+function onCreated(tab, parentId, indexInParent) {
+	let obj = tabNew(tab);
+	setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
+	let id = tab.id;
+
+	unfoldAncestors(id)
 	Selected.requireUpdate();
-	setScrollPosition(tab.id);
+
+	if (!tab.hidden)
+		setScrollPosition(id);
 }
 
 function broadcast(signal) {
@@ -633,33 +529,6 @@ function signal(param) {
 	}
 }
 
-// Relying on this to speed up a large number of changes wouldn't be
-// necessary if updateVisibleSubtree could be made more efficient
-// perhaps by having tabs in a flat structure instead of hierarchial
-// this would also trivialize virtualizing the sidebar
-async function refresh() {
-	for (let k in TABS) {
-		let id = Number(k);
-		if (id != -1) tabRelease(id);
-	}
-
-	displaySubtree(-1);
-
-	onActivated(CACHE.getActive(WINDOW_ID).id);
-}
-
-async function createTree(data) {
-	CACHE = data.cache;
-	TREE = data.tree;
-	await refresh();
-}
-
-function resolveDelta(delta) {
-	if (TREE.get(delta.id) == null) TREE.new(delta.id);
-	TREE.move(delta.id, delta.index);
-	TREE.changeParent(delta.id, delta.parentId);
-}
-
 async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 	if (msg.recipient !== undefined && msg.recipient != WINDOW_ID) return;
 	switch (msg.type) {
@@ -670,31 +539,26 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.OnActivated:
-			await CACHE.cacheOnActivated({ tabId: msg.tabId });
 			onActivated(msg.tabId);
 			break;
 
 		case MSG_TYPE.OnCreated:
-			await CACHE.cacheOnCreated(msg.tab);
-			msg.deltas.forEach(resolveDelta);
-			onCreated(msg.tab);
+			CACHE[msg.tab.id] = msg.tab
+			onCreated(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnMoved:
-			await CACHE.cacheOnMoved(msg.tabId, msg.info);
-			msg.deltas.forEach(resolveDelta);
-			onMoved(msg.tabId, msg.info);
+			CACHE[msg.tab.id] = msg.tab
+			onMoved(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnRemoved:
-			await CACHE.cacheOnRemoved(msg.tab.id, msg.info);
-			TREE.remove(msg.tab.id);
-			msg.deltas.forEach(resolveDelta);
+			CACHE[msg.tab.id] = msg.tab
 			onRemoved(msg.tab, msg.info, msg.values);
 			break;
 
 		case MSG_TYPE.OnUpdated:
-			await CACHE.cacheOnUpdated(msg.tab.id, msg.info, msg.tab);
+			CACHE[msg.tab.id] = msg.tab
 			onUpdated(msg.tab, msg.info);
 			break;
 
@@ -703,7 +567,12 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.SessionsValueUpdated:
-			if (msg.key != 'fold') break;
+			if (TABS[msg.tabId] === undefined)
+				return
+
+			if (msg.key != 'fold')
+				return
+
 			if (SESSIONS_VALUES[msg.tabId] == undefined) {
 				SESSIONS_VALUES[msg.tabId] = {};
 			}
@@ -743,9 +612,7 @@ async function init() {
 			break;
 	}
 
-	let anchor = document.getElementById('anchor');
 	DROP_INDICATOR = document.getElementById('dropIndicator');
-	HIDDEN_ANCHOR = document.createDocumentFragment();
 	let currentWindow = await browser.windows.getCurrent();
 
 	let params = new URLSearchParams(window.location.search);
@@ -757,11 +624,9 @@ async function init() {
 		id: -1
 	};
 	let rootTab = tabNew(fakeTab);
-
+	rootTab.childContainer.style.paddingLeft = 0
 	rootTab.node.remove();
-	rootTab.container.remove();
-	rootTab.childContainer.remove();
-	rootTab.childContainer = anchor;
+	document.body.appendChild(rootTab.container)
 
 	document.addEventListener('drop', (event) => {
 		onDrop(event, -1);
@@ -800,7 +665,7 @@ async function init() {
 		let tabId;
 
 		if (container == null)
-			tabId = CACHE.getActive(WINDOW_ID).id;
+			tabId = getId(CURRENT_ACTIVE_NODE);
 		else {
 			tabId = Number(container.getAttribute('tabId'));
 		}
@@ -831,11 +696,7 @@ async function init() {
 		}
 	});
 
-	TREE = new TreeStructure();
 	QUEUE = newSyncQueue({enabled: false});
-	CACHE = newCache();
-
-	QUEUE.do(refresh);
 
 	browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 		new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
@@ -847,9 +708,17 @@ async function init() {
 	});
 
 	SESSIONS_VALUES = msg.values;
-	msg.deltas.forEach(resolveDelta);
-	for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
+	let activeId
+	msg.tabs.forEach(({tab, parentId, indexInParent}) => {
+		let obj = tabNew(tab);
+		if (tab.active)
+			activeId = tab.id
+		setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
+	})
 
+	msg.tabs.forEach(({tab}) => updateFoldCounter(tab.id))
+	onActivated(activeId)
+	Selected.requireUpdate();
 	QUEUE.enable();
 }
 

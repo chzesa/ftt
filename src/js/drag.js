@@ -24,18 +24,16 @@ function onMouseUp(event, id, lastMouseUp) {
 	}
 
 	event.stopPropagation();
-
-	let tabId = id;
 	let time = Date.now();
 
 	if (time - lastMouseUp < 300) {
-		if (getValue(tabId, 'fold')) unfold(tabId);
-		else fold(tabId);
+		if (getValue(id, 'fold')) unfold(id);
+		else fold(id);
 		return 0;
 	}
 
 	if (event.button == 0) {
-		browser.tabs.update(tabId, {
+		browser.tabs.update(id, {
 			active: true
 		});
 	}
@@ -50,10 +48,7 @@ function onDragStart(event, id) {
 	event.stopPropagation();
 	let tabId = id;
 	event.dataTransfer.setData('number', tabId);
-	if (USE_API)
-		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.SetSelectionSource, windowId: WINDOW_ID});
-	else
-		BACKGROUND_PAGE.setSelectionSourceWindow(WINDOW_ID);
+	browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.SetSelectionSource, windowId: WINDOW_ID});
 
 	Selected.add(tabId);
 	DROP_INDICATOR.style.display = 'initial';
@@ -70,38 +65,24 @@ async function onDrop(event, tabId) {
 	let selection;
 	let sourceWindowId;
 
-	if (USE_API)
-		sourceWindowId = await browser.runtime.sendMessage({
-			recipient: -1, type: MSG_TYPE.GetSelectionSource});
-	else
-		sourceWindowId = BACKGROUND_PAGE.getSelectionSourceWindow();
+	sourceWindowId = await browser.runtime.sendMessage({
+		recipient: -1, type: MSG_TYPE.GetSelectionSource});
 
 	if (sourceWindowId == WINDOW_ID) {
 		selection = Selected.get();
 		Selected.clear();
 	} else {
-		if (USE_API)
-			selection = await browser.runtime.sendMessage({
-				recipient: -1, type: MSG_TYPE.GetSelection});
-		else
-			selection = await BACKGROUND_PAGE.getSelectionFromSourceWindow();
+		selection = await browser.runtime.sendMessage({
+			recipient: -1, type: MSG_TYPE.GetSelection});
 	}
 
 	if (DROP_PARENTING) {
-		if (USE_API)
-			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropParenting,
+		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropParenting,
 				selection, tabId, windowId: WINDOW_ID});
-		else
-			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropParenting,
-				selection, tabId, WINDOW_ID);
 	}
 	else {
-		if (USE_API)
-			browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropMoving,
-				selection, tabId, windowId: WINDOW_ID, before: DROP_BEFORE});
-		else
-			BACKGROUND_PAGE.enqueueTask(BACKGROUND_PAGE.sidebarDropMoving,
-				selection, tabId, DROP_BEFORE, WINDOW_ID);
+		browser.runtime.sendMessage({recipient: -1, type: MSG_TYPE.DropMoving,
+			selection, tabId, windowId: WINDOW_ID, before: DROP_BEFORE});
 	}
 
 	broadcast(SIGNAL_TYPE.dragDrop);
@@ -130,8 +111,7 @@ function updateDragIndicator(id, x, y) {
 	DROP_INDICATOR.style.left = '0px';
 	let scroll = document.documentElement.scrollTop;
 
-	let tab = CACHE.get(id);
-	if (tab.pinned) {
+	if (isPinned(id)) {
 		DROP_INDICATOR.style.height = `${TAR_RECT.height}px`;
 		DROP_INDICATOR.style.width = `0px`;
 		DROP_INDICATOR.style.top = `${TAR_RECT.top + scroll}px`;

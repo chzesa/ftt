@@ -305,7 +305,7 @@ async function onMoved(tab, info) {
 	}
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onMoved', id, info);
+	sidebar(windowId, 'onMoved', tab, node.parentId, tree.indexInParent(id));
 }
 
 async function onActivated(tab, info) {
@@ -407,7 +407,7 @@ async function onAttached(tab, info) {
 	CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onCreated', tab);
+	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id));
 }
 
 function onDetached(tab, info) {
@@ -497,7 +497,7 @@ async function onCreated(tab) {
 	}
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onCreated', tab);
+	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id));
 }
 
 function composeSidebarUpdateMessage(windowId, fn, param) {
@@ -511,13 +511,16 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 		case 'onCreated':
 			msg.type = MSG_TYPE.OnCreated;
 			msg.tab = param[0];
+			msg.parentId = param[1];
+			msg.indexInParent = param[2];
 			msg.deltas = TREE[windowId].endRecord();
 			break;
 
 		case 'onMoved':
 			msg.type = MSG_TYPE.OnMoved;
-			msg.tabId = param[0];
-			msg.info = param[1];
+			msg.tab = param[0];
+			msg.parentId = param[1];
+			msg.indexInParent = param[2];
 			msg.deltas = TREE[windowId].endRecord();
 			break;
 
@@ -799,18 +802,21 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 				sidebar: sender
 			};
 
-			let deltas = TREE[windowId].asDeltas();
+			let tree = TREE[windowId]
 			let tabs = [];
 			let values = {};
 
 			await CACHE.forEach(tab => {
-				tabs.push(tab);
+				tabs.push({
+					tab,
+					parentId: tree.get(tab.id).parentId,
+					indexInParent: tree.indexInParent(tab.id)
+				});
 				values[tab.id] = { fold: CACHE.getValue(tab.id, 'fold') || false };
 			}, windowId);
 
 			resolve({
 				tabs,
-				deltas,
 				values
 			});
 
