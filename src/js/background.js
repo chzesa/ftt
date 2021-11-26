@@ -791,6 +791,26 @@ async function init() {
 	STARTING = false;
 }
 
+async function getSidebarInitData(windowId) {
+	let tree = TREE[windowId]
+	let tabs = [];
+	let values = {};
+
+	await CACHE.forEach(tab => {
+		tabs.push({
+			tab,
+			parentId: tree.get(tab.id).parentId,
+			indexInParent: tree.indexInParent(tab.id)
+		});
+		values[tab.id] = { fold: CACHE.getValue(tab.id, 'fold') || false };
+	}, windowId);
+
+	return {
+		tabs,
+		values
+	};
+}
+
 async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 	if (msg.recipient !== undefined && msg.recipient != -1) return;
 
@@ -801,25 +821,7 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 				useApi: true,
 				sidebar: sender
 			};
-
-			let tree = TREE[windowId]
-			let tabs = [];
-			let values = {};
-
-			await CACHE.forEach(tab => {
-				tabs.push({
-					tab,
-					parentId: tree.get(tab.id).parentId,
-					indexInParent: tree.indexInParent(tab.id)
-				});
-				values[tab.id] = { fold: CACHE.getValue(tab.id, 'fold') || false };
-			}, windowId);
-
-			resolve({
-				tabs,
-				values
-			});
-
+			resolve(await getSidebarInitData(windowId));
 			break;
 
 		case MSG_TYPE.SetSelectionSource:
@@ -856,6 +858,16 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 				key: msg.key,
 				value: msg.value
 			});
+			break;
+
+		case MSG_TYPE.Refresh:
+			console.log(`Refresh requested`)
+			browser.runtime.sendMessage({
+				data: await getSidebarInitData(msg.windowId)
+				, type: MSG_TYPE.Refresh
+				, recipient: msg.windowId
+
+			})
 			break;
 
 		case MSG_TYPE.ConfigUpdate:

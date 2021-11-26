@@ -7,11 +7,11 @@ let QUEUE;
 
 let SESSIONS_VALUES;
 
-const TABS = {};
-const DISPLAYED = {};
-const FOLDED_SIZE = {};
+let TABS = {};
+let DISPLAYED = {};
+let FOLDED_SIZE = {};
 const INDENT_SIZE = 15
-const CACHE = []
+let CACHE = []
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -529,6 +529,66 @@ function signal(param) {
 	}
 }
 
+let THROTTLE = Date.now()
+let THROTTLE_COUNT = 0
+
+function throttle() {
+	if (THROTTLE == 0)
+		return true
+
+	let now = Date.now()
+	if (THROTTLE == now)
+		THROTTLE_COUNT++
+	THROTTLE = now
+
+	if (THROTTLE_COUNT > 20) {
+		THROTTLE = 0
+		browser.runtime.sendMessage({
+			type: MSG_TYPE.Refresh,
+			recipient: -1,
+			windowId: WINDOW_ID
+		});
+		return true
+	}
+
+	return false
+}
+
+function refresh(data) {
+	SESSIONS_VALUES = data.values;
+	THROTTLE = Date.now()
+	THROTTLE_COUNT = 0
+
+	if (TABS[-1])
+		TABS[-1].container.remove()
+
+	TABS = {};
+	DISPLAYED = {};
+	FOLDED_SIZE = {};
+	CACHE = []
+
+	// Create a dummy node so we don't have to treat root level tabs in
+	// a special way.
+	let rootTab = tabNew({
+		id: -1
+	});
+	rootTab.childContainer.style.paddingLeft = 0
+	rootTab.node.remove();
+	document.body.appendChild(rootTab.container)
+
+	let activeId
+	data.tabs.forEach(({tab, parentId, indexInParent}) => {
+		let obj = tabNew(tab);
+		if (tab.active)
+			activeId = tab.id
+		setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
+	})
+
+	data.tabs.forEach(({tab}) => updateFoldCounter(tab.id))
+	onActivated(activeId)
+	Selected.requireUpdate();
+}
+
 async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 	if (msg.recipient !== undefined && msg.recipient != WINDOW_ID) return;
 	switch (msg.type) {
@@ -539,27 +599,36 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.OnActivated:
+			if (throttle()) break;
 			onActivated(msg.tabId);
 			break;
 
 		case MSG_TYPE.OnCreated:
+			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onCreated(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnMoved:
+			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onMoved(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnRemoved:
+			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onRemoved(msg.tab, msg.info, msg.values);
 			break;
 
 		case MSG_TYPE.OnUpdated:
+			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onUpdated(msg.tab, msg.info);
+			break;
+
+		case MSG_TYPE.Refresh:
+			refresh(msg.data)
 			break;
 
 		case MSG_TYPE.Signal:
@@ -586,7 +655,7 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		default:
-			console.log(`Unrecognized msg ${msg}`);
+			console.log(`Unrecognized msg`, msg);
 			break;
 	}
 
@@ -618,16 +687,6 @@ async function init() {
 	let params = new URLSearchParams(window.location.search);
 	WINDOW_ID = params.get(`windowId`) || currentWindow.id;
 
-	// Create a dummy node so we don't have to treat root level tabs in
-	// a special way.
-	let fakeTab = {
-		id: -1
-	};
-	let rootTab = tabNew(fakeTab);
-	rootTab.childContainer.style.paddingLeft = 0
-	rootTab.node.remove();
-	document.body.appendChild(rootTab.container)
-
 	document.addEventListener('drop', (event) => {
 		onDrop(event, -1);
 	}, false);
@@ -654,8 +713,8 @@ async function init() {
 
 		for (let k in TABS) {
 			let tabObj = TABS[k];
-			if (k != -1 && tabObj != null)
-			ret[Number(k)] = tabObj.node;
+			if (k != -1 && DISPLAYED[k])
+				ret[Number(k)] = tabObj.node;
 		}
 		return ret;
 	});
@@ -707,18 +766,7 @@ async function init() {
 		windowId: WINDOW_ID
 	});
 
-	SESSIONS_VALUES = msg.values;
-	let activeId
-	msg.tabs.forEach(({tab, parentId, indexInParent}) => {
-		let obj = tabNew(tab);
-		if (tab.active)
-			activeId = tab.id
-		setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
-	})
-
-	msg.tabs.forEach(({tab}) => updateFoldCounter(tab.id))
-	onActivated(activeId)
-	Selected.requireUpdate();
+	refresh(msg)
 	QUEUE.enable();
 }
 
