@@ -518,6 +518,8 @@ function signal(param) {
 		break;
 	case SIGNAL_TYPE.selectAll:
 		CACHE.forEach(tab => {
+			if (tab.hidden)
+				return
 			unfold(tab.id);
 			Selected.add(tab.id);
 		}, WINDOW_ID, tab => !tab.hidden);
