@@ -9,7 +9,6 @@ class TreeStructure {
 			, childNodes: []
 			, index: -1
 		};
-		this.recordDeltas = false;
 		this.jt = new JumpTable();
 	}
 
@@ -18,16 +17,6 @@ class TreeStructure {
 			map: this.map,
 			array: this.array
 		}
-	}
-
-	beginRecord() {
-		this.recordDeltas = true;
-		this.deltas = [];
-	}
-
-	endRecord() {
-		this.recordDeltas = false;
-		return this.deltas;
 	}
 
 	asDeltas() {
@@ -206,12 +195,6 @@ class TreeStructure {
 		this.jt.setParent(node.id, parent.id);
 		for (let i = node.index + 1; i < h; i++)
 			this.jt.invalidate(this.array[i].id);
-
-		if (this.recordDeltas) this.deltas.push({
-			id: node.id,
-			parentId: parent.id,
-			index: node.index
-		});
 	}
 
 	promoteFirstChild(id) {
@@ -239,12 +222,6 @@ class TreeStructure {
 			this.jt.setParent(child.id, firstChild.id);
 			newChildren.push(child);
 		}
-
-		if (this.recordDeltas) children.forEach(child => this.deltas.push({
-			id: child.id,
-			parentId: child.parentId,
-			index: child.index
-		}));
 
 		node.childNodes.length = 0;
 

@@ -285,8 +285,6 @@ async function onMoved(tab, info) {
 		}, CACHE_FLUSH_TIMEOUT);
 	}
 
-	record(windowId);
-
 	if (node.childNodes.length > 0) {
 		let children = node.childNodes.slice(0);
 		if (cachedData == null) storeArrayRelationData(windowId, tree.subtreeArray(id));
@@ -352,8 +350,6 @@ async function onRemoved(tab, info, values) {
 
 	if (node == null) return;
 
-	record(windowId);
-
 	let children = node.childNodes.slice(0);
 
 	let index = node.index;
@@ -389,7 +385,6 @@ async function onAttached(tab, info) {
 	let windowId = info.newWindowId;
 	let tree = TREE[windowId];
 	let node;
-	record(windowId);
 
 	if (tree == null) {
 		tree = await newWindow(windowId);
@@ -415,8 +410,6 @@ function onDetached(tab, info) {
 	let tree = TREE[windowId];
 	let id = tab.id;
 	let node = tree.get(id);
-
-	record(windowId);
 
 	let children = node.childNodes.slice(0);
 
@@ -447,7 +440,6 @@ async function onCreated(tab) {
 		pid = toPid(id);
 	}
 	else {
-		record(windowId);
 		pid = assignPid(tab.id);
 		let parentId = assignParent(tab);
 
@@ -513,7 +505,6 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.tab = param[0];
 			msg.parentId = param[1];
 			msg.indexInParent = param[2];
-			msg.deltas = TREE[windowId].endRecord();
 			break;
 
 		case 'onMoved':
@@ -521,7 +512,6 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.tab = param[0];
 			msg.parentId = param[1];
 			msg.indexInParent = param[2];
-			msg.deltas = TREE[windowId].endRecord();
 			break;
 
 		case 'onRemoved':
@@ -529,7 +519,6 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.tab = param[0];
 			msg.info = param[1];
 			msg.values = param[2];
-			msg.deltas = TREE[windowId].endRecord();
 			break;
 
 		case 'onUpdated':
@@ -562,11 +551,6 @@ function sidebar(windowId, fn, ...param) {
 		delete SIDEBARS[windowId];
 		if (DEBUG_MODE) console.log(e);
 	}
-}
-
-function record(windowId) {
-	let sb = SIDEBARS[windowId];
-	if (sb != null && sb.useApi) TREE[windowId].beginRecord();
 }
 
 async function registerSidebar(sidebar, windowId) {
