@@ -540,6 +540,9 @@ function throttle() {
 	let now = Date.now()
 	if (THROTTLE == now)
 		THROTTLE_COUNT++
+	else
+		THROTTLE_COUNT = 0
+
 	THROTTLE = now
 
 	if (THROTTLE_COUNT > 20) {
