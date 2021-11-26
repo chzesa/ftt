@@ -475,8 +475,9 @@ function onMoved(tab, parentId, indexInParent) {
 		if (foldedParent.result)
 			incrementFoldCounter(foldedParent.id, -1);
 	}
-
-	setAsNthChild(TABS[id].container, TABS[parentId].childContainer, indexInParent)
+	let frag = document.createDocumentFragment()
+	frag.appendChild(TABS[id].container)
+	setAsNthChild(frag, TABS[parentId].childContainer, indexInParent)
 
 	if (tab.active)
 		unfoldAncestors(id)
