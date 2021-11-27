@@ -23,6 +23,7 @@ const MSG_TYPE = {
 	, ConfigUpdate: 14
 	, ClearData: 15
 	, Refresh: 16
+	, OnParentChanged: 17
 };
 
 const DescendantOpenPosition = {

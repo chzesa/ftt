@@ -531,6 +531,11 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.type = MSG_TYPE.Signal;
 			msg.signal = param[0];
 			break;
+
+		case 'updateChildPositions':
+			msg.type = MSG_TYPE.OnParentChanged
+			msg.deltas = param[0]
+			break;
 	}
 
 	return msg;
@@ -660,13 +665,23 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 				i++;
 			}
 
-			ids.splice(0, i).forEach(id => {
+			let updateParents = ids.splice(0, i)
+			updateParents.forEach(id => {
 				if (eligibleParent(windowId, id, parentId)) {
 					tree.changeParent(id, parentId);
 					CACHE.setValue(id, 'parentPid', toPid(parentId));
-					sidebar(windowId, 'updateChildPositions', parentId);
 				}
 			});
+
+			let deltas = updateParents.map(id => {
+				return {
+					id,
+					parentId: tree.get(id).parentId,
+					indexInParent: tree.indexInParent(id)
+				}
+			})
+
+			sidebar(windowId, 'updateChildPositions', deltas)
 
 			storeArrayRelationData(SELECTION_SOURCE_WINDOW, ids);
 			ids.forEach(id => MOVE_CACHE[id].ancestors.unshift(toPid(parentId)));
@@ -697,7 +712,11 @@ async function sidebarDropParenting(ids, parentId, windowId) {
 				CACHE.setValue(tabId, 'parentPid', toPid(parentId));
 
 				if (DEBUG_MODE) tree.validate();
-				sidebar(windowId, 'updateChildPositions', parentId);
+				sidebar(windowId, 'updateChildPositions', [{
+					id: tabId,
+					parentId,
+					indexInParent: tree.indexInParent(tabId)
+				}]);
 			}
 		} else {
 			let ids = TREE[tab.windowId].subtreeArray(tabId);

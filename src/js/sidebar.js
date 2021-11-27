@@ -472,6 +472,29 @@ function onActivated(id) {
 	setScrollPosition(id);
 }
 
+function onParentChanged({id, parentId, indexInParent}) {
+	let tab = TABS[id]
+
+	if (!tab.hidden) {
+		let foldedParent = inFoldedTree(id);
+		if (foldedParent.result)
+			incrementFoldCounter(foldedParent.id, -1);
+	}
+
+	let frag = document.createDocumentFragment()
+	frag.appendChild(TABS[id].container)
+	setAsNthChild(frag, TABS[parentId].childContainer, indexInParent)
+
+	if (tab.active)
+		unfoldAncestors(id)
+
+	if (!tab.hidden) {
+		let foldedParent = inFoldedTree(id);
+		if (foldedParent.result)
+			incrementFoldCounter(foldedParent.id);
+	}
+}
+
 function onMoved(tab, parentId, indexInParent) {
 	let id = tab.id
 
@@ -667,6 +690,10 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			else
 				onUnfold(msg.tabId);
 			break;
+
+		case MSG_TYPE.OnParentChanged:
+			msg.deltas.forEach(onParentChanged)
+			break
 
 		default:
 			console.log(`Unrecognized msg`, msg);
