@@ -541,31 +541,12 @@ function sidebar(windowId, fn, ...param) {
 	if (sb == null) return;
 
 	try {
-		if (sb.useApi) {
-			let msg = composeSidebarUpdateMessage(windowId, fn, param);
-			browser.runtime.sendMessage(msg);
-		} else {
-			sb.sidebar[fn](...param);
-		}
+		let msg = composeSidebarUpdateMessage(windowId, fn, param);
+		browser.runtime.sendMessage(msg);
 	} catch(e) {
 		delete SIDEBARS[windowId];
 		if (DEBUG_MODE) console.log(e);
 	}
-}
-
-async function registerSidebar(sidebar, windowId) {
-	while (STARTING) {
-		await wait(50);
-	}
-
-	QUEUE.do(async () => {
-		SIDEBARS[windowId] = { sidebar, useApi: false };
-
-		await sidebar.createTree({
-			cache: CACHE,
-			tree: TREE[windowId],
-		});
-	});
 }
 
 function enqueueTask(task, ...param) {
@@ -799,7 +780,6 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 		case MSG_TYPE.Register:
 			let windowId = Number(msg.windowId);
 			SIDEBARS[windowId] = {
-				useApi: true,
 				sidebar: sender
 			};
 			resolve(await getSidebarInitData(windowId));
