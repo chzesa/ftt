@@ -189,7 +189,7 @@ function tabNew(tab) {
 	return obj;
 }
 
-function tabClose(id) {
+function promoteFirstChild(id) {
 	let obj = TABS[id];
 	let children = obj.childContainer.children;
 	if (children.length > 1) {
@@ -205,7 +205,11 @@ function tabClose(id) {
 	} else if  (children.length == 1) {
 		obj.container.parentNode.insertBefore(children[0], obj.container);
 	}
+}
 
+function tabClose(id) {
+	promoteFirstChild(id)
+	let obj = TABS[id];
 	obj.container.remove()
 }
 
@@ -476,6 +480,7 @@ function onMoved(tab, parentId, indexInParent) {
 		if (foldedParent.result)
 			incrementFoldCounter(foldedParent.id, -1);
 	}
+	promoteFirstChild(id)
 	let frag = document.createDocumentFragment()
 	frag.appendChild(TABS[id].container)
 	setAsNthChild(frag, TABS[parentId].childContainer, indexInParent)
