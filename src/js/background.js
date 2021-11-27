@@ -822,12 +822,13 @@ async function bgInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.Refresh:
-			console.log(`Refresh requested`)
-			browser.runtime.sendMessage({
-				data: await getSidebarInitData(msg.windowId)
-				, type: MSG_TYPE.Refresh
-				, recipient: msg.windowId
+			QUEUE.do(async () => {
+				browser.runtime.sendMessage({
+					data: await getSidebarInitData(msg.windowId)
+					, type: MSG_TYPE.Refresh
+					, recipient: msg.windowId
 
+				})
 			})
 			break;
 
