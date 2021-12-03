@@ -90,6 +90,13 @@ async function init() {
 
 	document.body.appendChild(stayInTree);
 
+	let tabCloseButton = createCheckbox(browser.i18n.getMessage("showSidebarTabCloseButton"),
+		v => updateSetting(`showTabCloseButton`, v),
+		CONFIG.showTabCloseButton
+	);
+
+	document.body.appendChild(tabCloseButton)
+
 	let debugModeToggle = createCheckbox(browser.i18n.getMessage("optionsDebugMode"), v => {
 		browser.storage.local.set({
 			debug_mode: v

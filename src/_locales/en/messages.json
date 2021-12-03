@@ -161,4 +161,8 @@
 	, "optionsClearTreeDataConfirmationPopup": {
 		"message": "Clearing the data will reset all trees.\nContinue?"
 	}
+
+	, "showSidebarTabCloseButton": {
+		"message": "Show tab close button in sidebar"
+	}
 }

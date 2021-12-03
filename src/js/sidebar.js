@@ -1,7 +1,7 @@
 let DEBUG_MODE;
 let WINDOW_ID;
 let CURRENT_ACTIVE_NODE;
-
+let CONFIG
 let USE_API = false;
 let QUEUE;
 
@@ -132,7 +132,15 @@ function tabNew(tab) {
 	let node = new_element('div', {
 		class: 'tab'
 		, draggable: 'true'
-	}, [context, favicon, badgeMute, badgeFold, attention, nodeTitle, spacer, closeButton]);
+	}, [
+		context
+		, favicon
+		, badgeMute
+		, badgeFold
+		, attention
+		, nodeTitle
+		, CONFIG.showTabCloseButton ? spacer : null
+		, CONFIG.showTabCloseButton ? closeButton : null]);
 
 	let children = new_element('div', {
 		class: 'childContainer'
@@ -695,10 +703,10 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 }
 
 async function init() {
-	let config = await browser.storage.local.get();
-	DEBUG_MODE = config.debug_mode || false;
+	CONFIG = await browser.storage.local.get();
+	DEBUG_MODE = CONFIG.debug_mode || false;
 
-	switch(config.theme) {
+	switch(CONFIG.theme) {
 		case ThemeOption.Light:
 			appendCSSFile(`light.css`);
 			break;

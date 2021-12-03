@@ -12,7 +12,8 @@ function new_element(name, attributes, children) {
 	}
 
 	for (const child of children || []) {
-		e.appendChild(child);
+		if (child)
+			e.appendChild(child);
 	}
 
 	return e;
