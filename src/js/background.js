@@ -536,6 +536,11 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.type = MSG_TYPE.OnParentChanged
 			msg.deltas = param[0]
 			break;
+
+		case 'refresh':
+			msg.type = MSG_TYPE.Refresh
+			msg.data = param[0]
+			break;
 	}
 
 	return msg;
