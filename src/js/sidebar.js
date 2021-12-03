@@ -574,39 +574,8 @@ function signal(param) {
 	}
 }
 
-let THROTTLE = Date.now()
-let THROTTLE_COUNT = 0
-
-function throttle() {
-	if (THROTTLE == 0)
-		return true
-
-	let now = Date.now()
-	if (THROTTLE == now)
-		THROTTLE_COUNT++
-	else
-		THROTTLE_COUNT = 0
-
-	THROTTLE = now
-
-	if (THROTTLE_COUNT > 20) {
-		THROTTLE = 0
-		browser.runtime.sendMessage({
-			type: MSG_TYPE.Refresh,
-			recipient: -1,
-			windowId: WINDOW_ID
-		});
-		return true
-	}
-
-	return false
-}
-
-function refresh(data, cache = undefined) {
+function refresh(data, cache = CACHE) {
 	SESSIONS_VALUES = data.values;
-	THROTTLE = Date.now()
-	THROTTLE_COUNT = 0
-
 	if (TABS[-1])
 		TABS[-1].container.remove()
 
@@ -648,30 +617,25 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 			break;
 
 		case MSG_TYPE.OnActivated:
-			if (throttle()) break;
 			onActivated(msg.tabId);
 			break;
 
 		case MSG_TYPE.OnCreated:
-			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onCreated(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnMoved:
-			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onMoved(msg.tab, msg.parentId, msg.indexInParent);
 			break;
 
 		case MSG_TYPE.OnRemoved:
-			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onRemoved(msg.tab, msg.info, msg.values);
 			break;
 
 		case MSG_TYPE.OnUpdated:
-			if (throttle()) break;
 			CACHE[msg.tab.id] = msg.tab
 			onUpdated(msg.tab, msg.info);
 			break;
