@@ -106,7 +106,7 @@ function tabNew(tab) {
 
 	badgeMute.addEventListener('mousedown', async (event) => {
 		event.stopPropagation();
-		let t = CACHE[obj.id];
+		let t = USE_API ? CACHE[obj.id] : CACHE.get(obj.id)
 		let newStatus = false;
 		if (t.mutedInfo != null) newStatus = !t.mutedInfo.muted;
 		else if (t.audible) newStatus = true;
