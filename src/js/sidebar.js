@@ -814,12 +814,9 @@ async function init() {
 			Selected.stop();
 		}
 	});
-
 	if (currentWindow.incognito) {
 		USE_API = true;
-		TREE = new TreeStructure();
 		QUEUE = newSyncQueue({enabled: false});
-		CACHE = newCache();
 
 		browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 			new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
