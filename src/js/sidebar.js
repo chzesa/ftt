@@ -821,7 +821,6 @@ async function init() {
 		QUEUE = newSyncQueue({enabled: false});
 		CACHE = newCache();
 
-		QUEUE.do(refresh);
 		browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 			new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
 
@@ -830,10 +829,6 @@ async function init() {
 			recipient: -1,
 			windowId: WINDOW_ID
 		});
-
-		SESSIONS_VALUES = msg.values;
-		msg.deltas.forEach(resolveDelta);
-		for (let k in msg.tabs) await CACHE.cacheOnCreated(msg.tabs[k]);
 
 		refresh(msg)
 		QUEUE.enable();
