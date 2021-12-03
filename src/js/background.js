@@ -631,10 +631,13 @@ async function getSelectionFromSourceWindow(src = SELECTION_SOURCE_WINDOW) {
 	let sb = SIDEBARS[src];
 	if (sb != null) {
 		try {
-			return await browser.runtime.sendMessage({
-				recipient: src,
-				type: MSG_TYPE.GetSelection
-			});
+			if (sb.useApi)
+				return await browser.runtime.sendMessage({
+					recipient: src,
+					type: MSG_TYPE.GetSelection
+				});
+
+			return sb.sidebar.getSelection();
 		} catch(e) {
 			if (DEBUG_MODE) console.log(e);
 		}
