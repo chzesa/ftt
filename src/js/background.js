@@ -565,11 +565,7 @@ async function registerSidebar(sidebar, windowId) {
 
 	QUEUE.do(async () => {
 		SIDEBARS[windowId] = { sidebar, useApi: false };
-
-		await sidebar.createTree({
-			cache: CACHE,
-			tree: TREE[windowId],
-		});
+		await sidebar.refresh(await getSidebarInitData(windowId), CACHE)
 	});
 }
 

@@ -11,7 +11,7 @@ let TABS = {};
 let DISPLAYED = {};
 let FOLDED_SIZE = {};
 const INDENT_SIZE = 15
-let CACHE = []
+let CACHE
 
 function wait(dur) {
 	return new Promise(function (res) {
@@ -601,7 +601,7 @@ function throttle() {
 	return false
 }
 
-function refresh(data) {
+function refresh(data, cache = undefined) {
 	SESSIONS_VALUES = data.values;
 	THROTTLE = Date.now()
 	THROTTLE_COUNT = 0
@@ -612,7 +612,7 @@ function refresh(data) {
 	TABS = {};
 	DISPLAYED = {};
 	FOLDED_SIZE = {};
-	CACHE = []
+	CACHE = USE_API ? [] : cache
 
 	// Create a dummy node so we don't have to treat root level tabs in
 	// a special way.
@@ -625,7 +625,7 @@ function refresh(data) {
 
 	let activeId
 	data.tabs.forEach(({tab, parentId, indexInParent}) => {
-		CACHE[tab.id] = tab
+		if (USE_API) CACHE[tab.id] = tab
 		let obj = tabNew(tab);
 		if (tab.active)
 			activeId = tab.id
@@ -842,9 +842,7 @@ async function init() {
 	}
 
 	BACKGROUND_PAGE.registerSidebar({
-		createTree
-		, updateChildPositions: displaySubtree
-		, refresh
+		refresh
 		, signal
 		, getSelection: () => {
 			let ret = Selected.get();
