@@ -820,6 +820,7 @@ async function init() {
 		, onUpdated
 		, onActivated
 		, onMoved
+		, updateChildPositions: (data) => data.forEach(onParentChanged)
 	}, WINDOW_ID);
 }
 
