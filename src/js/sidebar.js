@@ -471,14 +471,15 @@ function updateHidden(tab, tabObj) {
 	Selected.requireUpdate();
 }
 
-function onActivated(id) {
+function onActivated(id, setPos = true) {
 	unfoldAncestors(id);
 	if (CURRENT_ACTIVE_NODE != null)
 	setNodeClass(CURRENT_ACTIVE_NODE.node, 'active', false);
 
 	CURRENT_ACTIVE_NODE = TABS[id];
 	setNodeClass(CURRENT_ACTIVE_NODE.node, 'active', true);
-	setScrollPosition(id);
+	if (setPos)
+		setScrollPosition(id);
 }
 
 function onParentChanged({id, parentId, indexInParent}) {
@@ -603,7 +604,7 @@ function refresh(data, cache = CACHE) {
 	})
 
 	data.tabs.forEach(({tab}) => updateFoldCounter(tab.id))
-	onActivated(activeId)
+	onActivated(activeId, false)
 	Selected.requireUpdate();
 }
 
