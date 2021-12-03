@@ -924,6 +924,7 @@ async function initConfig() {
 		descendantOpenPosition: DescendantOpenPosition.Last
 		, stayInTreeOnTabClose: true
 		, theme: ThemeOption.Dark
+		, showTabCloseButton: true
 	};
 
 	CONFIG = await browser.storage.local.get();
