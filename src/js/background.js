@@ -561,7 +561,7 @@ function throttle(windowId) {
 
 	THROTTLE[windowId] = now
 
-	if (THROTTLE_COUNT[windowId] > 20) {
+	if (THROTTLE_COUNT[windowId] > 10) {
 		THROTTLE[windowId] = 0
 		setTimeout(() => {
 			QUEUE.do(async () => {
