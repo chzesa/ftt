@@ -388,6 +388,7 @@ function incrementFoldCounter(id, by = 1) {
 function fold(id) {
 	if (id != -1 && !getValue(id, 'fold'))
 		setValue(id, 'fold', true);
+	if (!USE_API) onFold(id)
 }
 
 function onFold(id) {
