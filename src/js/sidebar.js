@@ -104,6 +104,14 @@ function tabNew(tab) {
 		class: 'mute badge hidden'
 	}, [muteIcon])
 
+	let closeIcon = new_element('div', {
+		class: 'closeIcon'
+	})
+
+	let closeButton = new_element('div', {
+		class: 'closeButton'
+	}, [closeIcon])
+
 	badgeMute.addEventListener('mousedown', async (event) => {
 		event.stopPropagation();
 		let t = USE_API ? CACHE[obj.id] : CACHE.get(obj.id)
@@ -113,12 +121,18 @@ function tabNew(tab) {
 		browser.tabs.update(obj.id, {muted: newStatus});
 	}, false);
 
+	let spacer = new_element('div', {
+		class: 'hspace'
+	})
+
 	badgeMute.addEventListener('mouseup', (event) => event.stopPropagation(), false);
+
+	closeButton.addEventListener('click', e => browser.tabs.remove(obj.id))
 
 	let node = new_element('div', {
 		class: 'tab'
 		, draggable: 'true'
-	}, [context, favicon, badgeFold, attention, nodeTitle, badgeMute]);
+	}, [context, favicon, badgeMute, badgeFold, attention, nodeTitle, spacer, closeButton]);
 
 	let children = new_element('div', {
 		class: 'childContainer'
