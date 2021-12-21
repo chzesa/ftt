@@ -764,7 +764,7 @@ async function init() {
 		let tabId;
 
 		if (container == null)
-			tabId = getId(CURRENT_ACTIVE_NODE);
+			tabId = getId(CURRENT_ACTIVE_NODE.container);
 		else {
 			tabId = Number(container.getAttribute('tabId'));
 		}
