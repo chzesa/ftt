@@ -614,7 +614,7 @@ function refresh(data, cache = CACHE) {
 	});
 	rootTab.childContainer.style.paddingLeft = 0
 	rootTab.node.remove();
-	document.body.appendChild(rootTab.container)
+	document.getElementById(`anchor`).appendChild(rootTab.container)
 
 	let activeId
 	data.tabs.forEach(({tab, parentId, indexInParent}) => {
