@@ -2,6 +2,12 @@ body {
 	background-color: var(--sidebar-background-color);
 	color: var(--sidebar-color);
 }
+
+#anchor {
+	overflow-x: hidden;
+	height: 100%;
+}
+
 .tab {
 	width: 100%;
 	height: 26px;
