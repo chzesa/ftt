@@ -557,9 +557,13 @@ function onRemoved(tab, info, values) {
 	Selected.requireUpdate();
 }
 
-function onCreated(tab, parentId, indexInParent) {
+function onCreated(tab, parentId, indexInParent, children) {
 	let obj = tabNew(tab);
 	setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
+
+	for (let i = 0; i < children.length; i++)
+		setAsNthChild(TABS[children[i]].container, obj.childContainer, i);
+
 	let id = tab.id;
 
 	unfoldAncestors(id)

@@ -402,7 +402,7 @@ async function onAttached(tab, info) {
 	CACHE.setValue(id, 'parentPid', toPid(node.parentId));
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id));
+	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id), node.childNodes.map(v => v.id));
 }
 
 function onDetached(tab, info) {
@@ -489,7 +489,7 @@ async function onCreated(tab) {
 	}
 
 	if (DEBUG_MODE) tree.validate();
-	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id));
+	sidebar(windowId, 'onCreated', tab, node.parentId, tree.indexInParent(id), node.childNodes.map(v => v.id));
 }
 
 function composeSidebarUpdateMessage(windowId, fn, param) {
