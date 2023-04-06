@@ -505,6 +505,7 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 			msg.tab = param[0];
 			msg.parentId = param[1];
 			msg.indexInParent = param[2];
+			msg.children = param[3]
 			break;
 
 		case 'onMoved':
