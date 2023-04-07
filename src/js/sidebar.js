@@ -634,6 +634,22 @@ function refresh(data, cache = CACHE) {
 	Selected.requireUpdate();
 }
 
+let FRAME_QUEUED = 0
+let QUEUED_ACTIONS = []
+
+function animationFrame(time) {
+	for (item of QUEUED_ACTIONS)
+		item.action(...item.params)
+
+	QUEUED_ACTIONS.length = 0
+	FRAME_QUEUED = 0
+}
+
+function enqueueAnimation(action, ...params) {
+	if (FRAME_QUEUED == 0) FRAME_QUEUED = window.requestAnimationFrame(animationFrame)
+	QUEUED_ACTIONS.push({action, params})
+}
+
 async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 	if (msg.recipient !== undefined && msg.recipient != WINDOW_ID) return;
 	switch (msg.type) {
@@ -835,6 +851,7 @@ async function init() {
 
 	BACKGROUND_PAGE.registerSidebar({
 		refresh
+		, enqueueAnimation
 		, signal
 		, getSelection: () => {
 			let ret = Selected.get();

@@ -547,51 +547,16 @@ function composeSidebarUpdateMessage(windowId, fn, param) {
 	return msg;
 }
 
-let THROTTLE = {}
-let THROTTLE_COUNT = {}
-
-function throttle(windowId) {
-	if (THROTTLE[windowId] == 0)
-		return true
-
-	let now = Date.now()
-	if (THROTTLE[windowId] == now)
-		THROTTLE_COUNT[windowId]++
-	else
-		THROTTLE_COUNT[windowId] = 0
-
-	THROTTLE[windowId] = now
-
-	if (THROTTLE_COUNT[windowId] > 10) {
-		THROTTLE[windowId] = 0
-		setTimeout(() => {
-			QUEUE.do(async () => {
-				let data = await getSidebarInitData(windowId)
-				THROTTLE[windowId] = Date.now()
-				THROTTLE_COUNT[windowId] = 0
-				sidebar(windowId, 'refresh', data)
-			})
-		}, 200)
-		return true
-	}
-
-	return false
-}
-
-
 function sidebar(windowId, fn, ...param) {
 	let sb = SIDEBARS[windowId];
 	if (sb == null) return;
-	const throttled = ['onCreated', 'onUpdated', 'onActivated', 'onRemoved', 'onMoved']
-	if (throttled.includes(fn) && throttle(windowId))
-		return;
 
 	try {
 		if (sb.useApi) {
 			let msg = composeSidebarUpdateMessage(windowId, fn, param);
 			browser.runtime.sendMessage(msg);
 		} else {
-			sb.sidebar[fn](...param);
+			sb.sidebar['enqueueAnimation'](sb.sidebar[fn], ...param)
 		}
 	} catch(e) {
 		delete SIDEBARS[windowId];
