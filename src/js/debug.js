@@ -390,3 +390,11 @@ async function brickData(count = -1) {
 		set.add(tab.id);
 	}
 }
+
+async function getTabData(tabId) {
+	let tab = await browser.tabs.get(tabId)
+	let cached = CACHE.get(tabId)
+	let tree = TREE[cached.windowId]
+	let node = tree.get(tabId)
+	console.log(tab, cached, tree, node)
+}
