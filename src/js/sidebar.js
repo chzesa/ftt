@@ -721,7 +721,10 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 				break;
 		}
 
-		resolve()
+		switch (msg.type) {
+			case MSG_TYPE.GetSelection: break;
+			default: resolve();
+		}
 	})
 }
 
