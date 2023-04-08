@@ -829,15 +829,23 @@ async function init() {
 		browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 			new Promise((res, rej) => QUEUE.do(sbInternalMessageHandler, msg, sender, res, rej)));
 
-		let msg = await browser.runtime.sendMessage({
-			type: MSG_TYPE.Register,
-			recipient: -1,
-			windowId: WINDOW_ID
-		});
+		while (true) {
+			try {
+				let msg = await browser.runtime.sendMessage({
+					type: MSG_TYPE.Register,
+					recipient: -1,
+					windowId: WINDOW_ID
+				});
 
-		refresh(msg)
-		QUEUE.enable();
-		return;
+				refresh(msg)
+				QUEUE.enable();
+				return;
+			}
+			catch (e) {
+				await wait (50);
+			}
+		}
+		
 	}
 
 	while(true) {
