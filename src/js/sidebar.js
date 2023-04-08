@@ -652,74 +652,77 @@ function enqueueAnimation(action, ...params) {
 
 async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 	if (msg.recipient !== undefined && msg.recipient != WINDOW_ID) return;
-	switch (msg.type) {
-		case MSG_TYPE.GetSelection:
-			let ret = Selected.get();
-			Selected.clear();
-			resolve(ret);
-			break;
 
-		case MSG_TYPE.OnActivated:
-			onActivated(msg.tabId);
-			break;
+	enqueueAnimation(() => {
+		switch (msg.type) {
+			case MSG_TYPE.GetSelection:
+				let ret = Selected.get();
+				Selected.clear();
+				resolve(ret);
+				break;
 
-		case MSG_TYPE.OnCreated:
-			CACHE[msg.tab.id] = msg.tab
-			onCreated(msg.tab, msg.parentId, msg.indexInParent);
-			break;
+			case MSG_TYPE.OnActivated:
+				onActivated(msg.tabId);
+				break;
 
-		case MSG_TYPE.OnMoved:
-			CACHE[msg.tab.id] = msg.tab
-			onMoved(msg.tab, msg.parentId, msg.indexInParent);
-			break;
+			case MSG_TYPE.OnCreated:
+				CACHE[msg.tab.id] = msg.tab
+				onCreated(msg.tab, msg.parentId, msg.indexInParent);
+				break;
 
-		case MSG_TYPE.OnRemoved:
-			CACHE[msg.tab.id] = msg.tab
-			onRemoved(msg.tab, msg.info, msg.values);
-			break;
+			case MSG_TYPE.OnMoved:
+				CACHE[msg.tab.id] = msg.tab
+				onMoved(msg.tab, msg.parentId, msg.indexInParent);
+				break;
 
-		case MSG_TYPE.OnUpdated:
-			CACHE[msg.tab.id] = msg.tab
-			onUpdated(msg.tab, msg.info);
-			break;
+			case MSG_TYPE.OnRemoved:
+				CACHE[msg.tab.id] = msg.tab
+				onRemoved(msg.tab, msg.info, msg.values);
+				break;
 
-		case MSG_TYPE.Refresh:
-			refresh(msg.data)
-			break;
+			case MSG_TYPE.OnUpdated:
+				CACHE[msg.tab.id] = msg.tab
+				onUpdated(msg.tab, msg.info);
+				break;
 
-		case MSG_TYPE.Signal:
-			signal(msg.signal);
-			break;
+			case MSG_TYPE.Refresh:
+				refresh(msg.data)
+				break;
 
-		case MSG_TYPE.SessionsValueUpdated:
-			if (TABS[msg.tabId] === undefined)
-				return
+			case MSG_TYPE.Signal:
+				signal(msg.signal);
+				break;
 
-			if (msg.key != 'fold')
-				return
+			case MSG_TYPE.SessionsValueUpdated:
+				if (TABS[msg.tabId] === undefined)
+					return
 
-			if (SESSIONS_VALUES[msg.tabId] == undefined) {
-				SESSIONS_VALUES[msg.tabId] = {};
-			}
+				if (msg.key != 'fold')
+					return
 
-			SESSIONS_VALUES[msg.tabId][msg.key] = msg.value;
+				if (SESSIONS_VALUES[msg.tabId] == undefined) {
+					SESSIONS_VALUES[msg.tabId] = {};
+				}
 
-			if (msg.value)
-				onFold(msg.tabId);
-			else
-				onUnfold(msg.tabId);
-			break;
+				SESSIONS_VALUES[msg.tabId][msg.key] = msg.value;
 
-		case MSG_TYPE.OnParentChanged:
-			msg.deltas.forEach(onParentChanged)
-			break
+				if (msg.value)
+					onFold(msg.tabId);
+				else
+					onUnfold(msg.tabId);
+				break;
 
-		default:
-			console.log(`Unrecognized msg`, msg);
-			break;
-	}
+			case MSG_TYPE.OnParentChanged:
+				msg.deltas.forEach(onParentChanged)
+				break
 
-	resolve()
+			default:
+				console.log(`Unrecognized msg`, msg);
+				break;
+		}
+
+		resolve()
+	})
 }
 
 async function init() {
