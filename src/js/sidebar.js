@@ -667,7 +667,7 @@ async function sbInternalMessageHandler(msg, sender, resolve, reject) {
 
 			case MSG_TYPE.OnCreated:
 				CACHE[msg.tab.id] = msg.tab
-				onCreated(msg.tab, msg.parentId, msg.indexInParent);
+				onCreated(msg.tab, msg.parentId, msg.indexInParent, msg.children);
 				break;
 
 			case MSG_TYPE.OnMoved:
