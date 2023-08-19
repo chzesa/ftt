@@ -798,8 +798,7 @@ async function getSidebarInitData(windowId) {
 	await CACHE.forEach(tab => {
 		tabs.push({
 			tab,
-			parentId: tree.get(tab.id).parentId,
-			indexInParent: tree.indexInParent(tab.id)
+			parentId: tree.get(tab.id).parentId
 		});
 		values[tab.id] = { fold: CACHE.getValue(tab.id, 'fold') || false };
 	}, windowId);

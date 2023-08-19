@@ -620,16 +620,17 @@ function refresh(data, cache = CACHE) {
 	rootTab.node.remove();
 	document.getElementById(`anchor`).appendChild(rootTab.container)
 
-	let activeId
-	data.tabs.forEach(({tab, parentId, indexInParent}) => {
+	let activeId;
+	data.tabs.sort((a, b) => a.tab.index - b.tab.index);
+	data.tabs.forEach(({tab, parentId}) => {
 		if (USE_API) CACHE[tab.id] = tab
 		let obj = tabNew(tab);
 		if (tab.active)
 			activeId = tab.id
-		setAsNthChild(obj.container, TABS[parentId].childContainer, indexInParent)
-	})
+		TABS[parentId].childContainer.appendChild(obj.container)
+	});
+	data.tabs.forEach(({tab}) => updateFoldCounter(tab.id));
 
-	data.tabs.forEach(({tab}) => updateFoldCounter(tab.id))
 	onActivated(activeId, false)
 	Selected.requireUpdate();
 }
