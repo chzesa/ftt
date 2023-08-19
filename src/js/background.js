@@ -145,20 +145,14 @@ function restoreDescendants(windowId, parentId, childPids) {
 
 	childPids = childPids.map(pid => tree.get(toId(pid)))
 		.filter(node => node != null)
-		.sort((a, b) => a.index - b.index);
+		.sort((a, b) => b.index - a.index);
 
-	let change;
-	do {
-		change = false;
-		// todo: use filter and check for length change of the array
-		childPids.forEach(child => {
-			if (child.parentId != parentId && eligibleParent(windowId, child.id, parentId)) {
-				tree.changeParent(child.id, parentId);
-				CACHE.setValue(child.id, `parentPid`, pid);
-				change = true;
-			}
-		});
-	} while(change);
+	childPids.forEach(child => {
+		if (child.parentId != parentId && eligibleParent(windowId, child.id, parentId)) {
+			tree.changeParent(child.id, parentId);
+			CACHE.setValue(child.id, `parentPid`, pid);
+		}
+	});
 }
 
 async function tryFlushMoveCache(count) {
