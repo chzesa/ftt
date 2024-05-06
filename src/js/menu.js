@@ -183,11 +183,8 @@ function reopenInContainer(ids, cookieStoreId) {
 	});
 
 	for (let i = 0; i < ids.length; i++) {
-		try {
-			p[i].then(() => browser.tabs.remove(ids[i]));
-		} catch(e) {
-			console.log(e);
-		}
+		p[i].then(() => browser.tabs.remove(ids[i]))
+			.catch(e => console.log(e))
 	}
 }
 
