@@ -171,15 +171,19 @@ function reopenInContainer(ids, cookieStoreId) {
 	ids.forEach(id => {
 		let tab = CACHE.get(id);
 
-		p.push(browser.tabs.create({
+		let data = {
 			active: tab.active,
 			cookieStoreId,
 			index: tab.index + 1 + count++,
 			openerTabId: tab.openerTabId,
 			pinned: tab.pinned,
-			url: tab.url,
 			windowId: tab.windowId
-		}));
+		}
+
+		if (tab.url != 'about:newtab')
+			data.url = tab.url
+
+		p.push(browser.tabs.create(data));
 	});
 
 	for (let i = 0; i < ids.length; i++) {
