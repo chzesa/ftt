@@ -12,6 +12,7 @@ let DISPLAYED = {};
 let FOLDED_SIZE = {};
 const INDENT_SIZE = 15
 let CACHE
+let BACKGROUND_PAGE = null
 
 function wait(dur) {
 	return new Promise(function (res) {
