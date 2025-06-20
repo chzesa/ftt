@@ -469,7 +469,7 @@ async function onCreated(tab) {
 						storeArrayRelationData(windowId, [id]);
 
 						browser.tabs.move(id, {
-							index: tree.get(lastChildId).index,
+							index: Math.max(tree.get(lastChildId).index, node.parent.index + 1),
 							windowId
 						});
 					}
