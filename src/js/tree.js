@@ -39,9 +39,9 @@ class TreeStructure {
 		let node = this.map[id];
 		let ancestors = [];
 
-		while (node.parentId != null) {
+		while (node != null) {
+			ancestors.push(node.parentId)
 			node = node.parent;
-			ancestors.push(node.id);
 		}
 
 		return ancestors;
